@@ -1434,29 +1434,30 @@ document.getElementById("historyBtn").onclick = function(){
                 const div = document.createElement("div");
                 div.className = "history-entry";
 
-                div.innerHTML = `
+                const zone =
+    selectedOffset === 9 ? "Asia/Seoul" :
+    selectedOffset === 8 ? "Asia/Manila" :
+    "Asia/Bangkok";
+
+const timeValue = sortType === "death"
+    ? entry.deathTime
+    : entry.recordedAt;
+
+div.innerHTML = `
     <div class="history-boss">${entry.boss}</div>
     <div class="history-time">
-        ${sortType === "death"
-            ? new Date(entry.deathTime).toLocaleString([], {
-                year: "numeric",
-                month: "numeric",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true
-            })
-            : new Date(entry.recordedAt).toLocaleString([], {
-                year: "numeric",
-                month: "numeric",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true
-            })
-        }
+        ${new Date(timeValue).toLocaleString("en-US", {
+            timeZone: zone,
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        })}
     </div>
 `;
+
 
 
                 list.appendChild(div);
