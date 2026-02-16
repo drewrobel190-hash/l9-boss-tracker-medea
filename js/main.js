@@ -1611,14 +1611,29 @@ document.getElementById("historyBtn").onclick = function(){
                 div.className = "history-entry";
 
                 div.innerHTML = `
-                    <div class="history-boss">${entry.boss}</div>
-                    <div class="history-time">
-                        ${sortType === "death"
-                            ? new Date(entry.deathTime).toLocaleString()
-                            : new Date(entry.recordedAt).toLocaleString()
-                        }
-                    </div>
-                `;
+    <div class="history-boss">${entry.boss}</div>
+    <div class="history-time">
+        ${sortType === "death"
+            ? new Date(entry.deathTime).toLocaleString([], {
+                year: "numeric",
+                month: "numeric",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true
+            })
+            : new Date(entry.recordedAt).toLocaleString([], {
+                year: "numeric",
+                month: "numeric",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true
+            })
+        }
+    </div>
+`;
+
 
                 list.appendChild(div);
             });
