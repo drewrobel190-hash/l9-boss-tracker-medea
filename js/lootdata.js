@@ -577,14 +577,190 @@ Neutro: [
   
 ],
 
+  "Wannitas": [
+    {
+    name: "Eos Knuckles",
+    rarity: "Legendary",
+    type: "Knuckles",
+    img: "Boss loots/16.Wannitas/Eos Knuckles.png",
+    desc: "",
+    stats: "Melee Attack: 316 | Additional Option: 3 Options"
+  },
+  {
+    name: "Eos Sword and Shield",
+    rarity: "Legendary",
+    type: "Sword and Shield",
+    img: "Boss loots/16.Wannitas/Eos Sword and Shield.png",
+    desc: "",
+    stats: "Melee Attack: 860 | Additional Option: 3 Options"
+  },
+  {
+    name: "Eos Battle Staff",
+    rarity: "Legendary",
+    type: "Battle Staff",
+    img: "Boss loots/16.Wannitas/Eos Battle Staff.png",
+    desc: "",
+    stats: "Magic Attack: 905 | Additional Option: 3 Options"
+  },
+  {
+    name: "Eos Greatsword",
+    rarity: "Legendary",
+    type: "Greatsword",
+    img: "Boss loots/16.Wannitas/Eos Greatsword.png",
+    desc: "",
+    stats: "Melee Attack: 945 | Additional Option: 3 Options"
+  }
+  ],
+
+  "Metus": [
+    {
+    name: "Eos Battle Shield",
+    rarity: "Legendary",
+    type: "Battle Shield",
+    img: "Boss loots/17.Metus/Eos Battle Shield.png",
+    desc: "",
+    stats: "Melee Attack: 815 | Additional Option: 3 Options"
+  },
+  {
+    name: "Eos Greatsword",
+    rarity: "Legendary",
+    type: "Greatsword",
+    img: "Boss loots/17.Metus/Eos Greatsword.png",
+    desc: "",
+    stats: "Melee Attack: 945 | Additional Option: 3 Options"
+  },
+  {
+    name: "Eos Staff",
+    rarity: "Legendary",
+    type: "Staff",
+    img: "Boss loots/17.Metus/Eos Staff.png",
+    desc: "",
+    stats: "Magic Attack: 815 | Additional Option: 3 Options"
+  },
+  {
+    name: "Eos Dual Daggers",
+    rarity: "Legendary",
+    type: "Dual Daggers",
+    img: "Boss loots/17.Metus/Eos Dual Daggers.png",
+    desc: "",
+    stats: "Melee Attack: 815 | Additional Option: 3 Options"
+  }
+  ],
+
+  "Duplican": [
+    {
+    name: "Eos Knuckles",
+    rarity: "Legendary",
+    type: "Knuckles",
+    img: "Boss loots/18.Duplican/Eos Knuckles.png",
+    desc: "",
+    stats: "Melee Attack: 316 | Additional Option: 3 Options"
+  },
+  {
+    name: "Eos Sword and Shield",
+    rarity: "Legendary",
+    type: "Sword and Shield",
+    img: "Boss loots/18.Duplican/Eos Sword and Shield.png",
+    desc: "",
+    stats: "Melee Attack: 860 | Additional Option: 3 Options"
+  },
+  {
+    name: "Eos Battle Shield",
+    rarity: "Legendary",
+    type: "Battle Shield",
+    img: "Boss loots/18.Duplican/Eos Battle Shield.png",
+    desc: "",
+    stats: "Melee Attack: 815 | Additional Option: 3 Options"
+  },
+  {
+    name: "Eos Dual Daggers",
+    rarity: "Legendary",
+    type: "Dual Daggers",
+    img: "Boss loots/18.Duplican/Eos Dual Daggers.png",
+    desc: "",
+    stats: "Melee Attack: 815 | Additional Option: 3 Options"
+  }
+  ],
+
+  "Shuliar": [
+    {
+    name: "Pernox Battle Staff",
+    rarity: "Legendary",
+    type: "Battle Staff",
+    img: "Boss loots/19.Shuliar/Pernox Battle Staff.png",
+    desc: "",
+    stats: "Magic Attack: 920 | Additional Option: 3 Options"
+  },
+  {
+    name: "Pernox Battle Shield",
+    rarity: "Legendary",
+    type: "Battle Shield",
+    img: "Boss loots/19.Shuliar/Pernox Battle Shield.png",
+    desc: "",
+    stats: "Melee Attack: 830 | Additional Option: 3 Options"
+  },
+  {
+    name: "Pernox Greatsword",
+    rarity: "Legendary",
+    type: "Greatsword",
+    img: "Boss loots/19.Shuliar/Pernox Greatsword.png",
+    desc: "",
+    stats: "Melee Attack: 965 | Additional Option: 3 Options"
+  },
+  {
+    name: "Pernox Crossbow",
+    rarity: "Legendary",
+    type: "Crossbow",
+    img: "Boss loots/19.Shuliar/Pernox Crossbow.png",
+    desc: "",
+    stats: "Ranged Attack: 920 | Additional Option: 3 Options"
+  }
+  ],
+
+  "Ringor": [
+    {
+    name: "Pernox Knuckles",
+    rarity: "Legendary",
+    type: "Knuckles",
+    img: "Boss loots/20.Ringor/Pernox Knuckles.png",
+    desc: "",
+    stats: "Melee Attack: 322 | Additional Option: 3 Options"
+  },
+  {
+    name: "Pernox Sword and Shield",
+    rarity: "Legendary",
+    type: "Sword and Shield",
+    img: "Boss loots/20.Ringor/Pernox Sword and Shield.png",
+    desc: "",
+    stats: "Melee Attack: 875 | Additional Option: 3 Options"
+  },
+  {
+    name: "Pernox Greatsword",
+    rarity: "Legendary",
+    type: "Greatsword",
+    img: "Boss loots/20.Ringor/Pernox Greatsword.png",
+    desc: "",
+    stats: "Melee Attack: 965 | Additional Option: 3 Options"
+  },
+  {
+    name: "Pernox Staff",
+    rarity: "Legendary",
+    type: "Staff",
+    img: "Boss loots/20.Ringor/Pernox Staff.png",
+    desc: "",
+    stats: "Magic Attack: 830 | Additional Option: 3 Options"
+  }
+  ],
+
+
 
     Ordo: [
         { 
-            name:"Raitoo Dildo",
+            name:"Raitoo's Dildo",
             img:"Boss loots/1.Venatus/Delphon Saddle.png",
-            desc:"A mysterious staff infused with void energy.",
+            desc:"A mysterious dildo infused with void energy.",
             rarity:"Mythic",
-            location:"Dropped by Neutro"
+            location:"Dropped by Raitoo"
         }
     ]
 };
