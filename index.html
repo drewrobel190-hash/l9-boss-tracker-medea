@@ -31,9 +31,18 @@
   </div>
 
   <div class="header-right">
-     <button id="worldBossBtn" class="map-btn">World Bosses</button>
-     <button id="openMapBtn" class="map-btn">Map</button>
-     <button class="admin-btn" onclick="adminLogin()">Admin</button>
+    <button id="worldBossBtn" class="map-btn">World Bosses</button>
+    <button id="openMapBtn" class="map-btn">Map</button>
+
+   <button id="historyBtn" class="map-btn">Boss TOD</button>
+
+
+    <button class="admin-btn" onclick="adminLogin()">
+        Admin
+    </button>
+</div>
+
+
       
   </div>
 
@@ -190,6 +199,26 @@
   </div>
 
 </div>
+
+<div id="historyPopup" class="overlay">
+    <div class="overlay-content">
+        <h2>Boss Death History</h2>
+
+        <div class="history-tabs">
+            <button id="tabDeath" class="history-tab active">Death Time</button>
+            <button id="tabRecorded" class="history-tab">Recorded Time</button>
+        </div>
+
+        <div id="historyList"></div>
+
+        <button onclick="document.getElementById('historyPopup').classList.remove('active')">
+            Close
+        </button>
+    </div>
+</div>
+
+
+
 
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
