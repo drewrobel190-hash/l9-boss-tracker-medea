@@ -211,7 +211,11 @@
 
         <div id="historyList"></div>
 
-        <button onclick="document.getElementById('historyPopup').classList.remove('active')">
+        <button onclick="
+    document.getElementById('historyPopup').classList.remove('active');
+    document.body.style.overflow='auto';
+">
+
             Close
         </button>
     </div>
@@ -226,6 +230,7 @@
 <script src="js/options.js"></script>
 <script src="js/bosses.js"></script>
 <script src="js/lootdata.js"></script>
+<script src="js/continents.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
