@@ -186,7 +186,7 @@ document.addEventListener("DOMContentLoaded", function(){
     // ===== BOSS MARKERS =====
 
 
-// Add Venatus
+// ??
 
 
 
@@ -358,7 +358,7 @@ function getNextFixedSpawn(schedule){
 
         const [h, m] = s.time.split(":");
 
-        // Convert server time (UTC+8) to UTC properly
+        // Convert server time (UTC+8) to UTC properly by building the UTC timestamp directly by teshi :V
         target.setUTCHours(
             parseInt(h) - 8,
             parseInt(m),
@@ -426,6 +426,7 @@ function createCard(boss){
             onclick="openAdminLayer('${boss.name}', ${boss.hours})">
         Set Timer
     </button>
+</div>
 </div>
 
 
@@ -510,6 +511,7 @@ if(lootData[boss.name] && lootData[boss.name].length > 0){
            onclick="showAllLoot('${boss.name.trim()}')">
            <strong>All Loots:</strong> ${(allLootData[boss.name] || []).length}
         </p>
+
     </div>
 </div>
 
@@ -588,14 +590,17 @@ if(boss.disabled){
 
             timerEl.innerText = formatTime(remaining);
 
-            // Convert stored UTC spawn to selected timezone
+            // Converted stored UTC spawn to selected timezone shiet
 
 
+
+const zone =
+    selectedOffset === 9 ? "Asia/Seoul" :
+    selectedOffset === 8 ? "Asia/Manila" :
+    "Asia/Bangkok";
 
 spawnEl.innerText = "Spawn: " + new Date(spawn).toLocaleString("en-US", {
-    timeZone: selectedOffset === 9 ? "Asia/Seoul" :
-              selectedOffset === 8 ? "Asia/Manila" :
-              "Asia/Bangkok",
+    timeZone: zone,
     year: "numeric",
     month: "numeric",
     day: "numeric",
@@ -603,6 +608,8 @@ spawnEl.innerText = "Spawn: " + new Date(spawn).toLocaleString("en-US", {
     minute: "2-digit",
     hour12: true
 });
+
+
 
 
 
@@ -767,7 +774,6 @@ const converted = new Date(
             day: "numeric",
             hour: "numeric",
             minute: "2-digit",
-            second: "2-digit",
             hour12: true
         });
     } else {
@@ -789,94 +795,90 @@ const setBtn = document.getElementById("adminSetBtn");
 if (setBtn) {
     setBtn.onclick = function(){
 
+    if(!currentAdminBoss || currentAdminHours == null){
+        alert("No boss selected.");
+        return;
+    }
+
+    const input = document.getElementById("adminTime").value;
+    if(!input){
+        alert("Please select a time.");
+        return;
+    }
+
+    const [h, m] = input.split(":");
+
+    const death = new Date();
+    death.setHours(parseInt(h), parseInt(m), 0, 0);
+
+    // DO NOT auto move to tomorrow
+    // We assume this is the last death time
+
+    let spawn = death.getTime() + (currentAdminHours * 3600000);
+
+    spawn += Math.floor(Math.random() * 59) * 1000;
+
+    db.ref("bossTimers/" + currentAdminBoss).set(spawn);
+
+    db.ref("bossHistory").push({
+    boss: currentAdminBoss,
+    deathTime: death.getTime(),
+    recordedAt: Date.now()
+}).then(() => {
+    limitBossHistory();
+});
+
+
+
+    triggerTimerAnimation(currentAdminBoss);
+    closeAdminLayer();
+};
+
+
+
+}
+
+const customBtn = document.getElementById("adminCustomBtn");
+
+if (customBtn) {
+    customBtn.onclick = function(){
+
         if(!currentAdminBoss || currentAdminHours == null){
             alert("No boss selected.");
             return;
         }
 
-        const input = document.getElementById("adminTime").value;
-        if(!input){
-            alert("Please select a time.");
+        const dateValue = document.getElementById("adminDate").value;
+        const timeValue = document.getElementById("adminCustomTime").value;
+
+        if(!dateValue || !timeValue){
+            alert("Please select both date and time.");
             return;
         }
 
-        const [h,m] = input.split(":");
+        const death = new Date(dateValue + "T" + timeValue);
 
-// User selected time in selected timezone
-const now = new Date();
+        let spawn = death.getTime() + (currentAdminHours * 3600000);
 
-// Build UTC timestamp directly
-const utcTime = Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    parseInt(h) - selectedOffset,
-    parseInt(m),
-    0,
-    0
-);
-
-const spawn = utcTime + currentAdminHours * 3600000;
-
-
+        spawn += Math.floor(Math.random() * 59) * 1000;
 
         db.ref("bossTimers/" + currentAdminBoss).set(spawn);
+
+        db.ref("bossHistory").push({
+    boss: currentAdminBoss,
+    deathTime: death.getTime(),
+    recordedAt: Date.now()
+}).then(() => {
+    limitBossHistory();
+});
+
+
 
         triggerTimerAnimation(currentAdminBoss);
         closeAdminLayer();
     };
 }
 
-const customBtn = document.getElementById("adminCustomBtn");
-if (customBtn) {
-    customBtn.onclick = function(){
-
-    if(!currentAdminBoss || currentAdminHours == null){
-        alert("No boss selected.");
-        return;
-    }
-
-    const dateValue = document.getElementById("adminDate").value;
-    const timeValue = document.getElementById("adminCustomTime").value;
-
-    if(!dateValue || !timeValue){
-        alert("Please select both date and time.");
-        return;
-    }
-
-
-
-// convert selected timezone → back to UTC
-
-
-// User selected date + time in selected timezone
-const [year, month, day] = dateValue.split("-");
-const [hour, minute] = timeValue.split(":");
-
-const utcTime = Date.UTC(
-    parseInt(year),
-    parseInt(month) - 1,
-    parseInt(day),
-    parseInt(hour) - selectedOffset,
-    parseInt(minute),
-    0,
-    0
-);
-
-const spawn = utcTime + currentAdminHours * 3600000;
-
-
-
-
-
-
-    db.ref("bossTimers/" + currentAdminBoss).set(spawn);
-
-    triggerTimerAnimation(currentAdminBoss);
-    closeAdminLayer();
-};
-
-}
 
 const resetBtn = document.getElementById("adminResetBtn");
 if (resetBtn) {
@@ -924,8 +926,6 @@ document.addEventListener("click", function(e){
     }
 });
 
-
-
 // 🔥 HANDLE SMALL LOOT CLICK (CARD LOOT)
 document.addEventListener("click", function(e){
 
@@ -945,6 +945,11 @@ function applyAdminMode(){
     controls.forEach(control=>{
         control.style.display = isAdmin ? "block" : "none";
     });
+
+    const historyBtn = document.getElementById("historyBtn");
+    if(historyBtn){
+        historyBtn.style.display = "inline-block";
+    }
 }
 
 
@@ -1554,6 +1559,118 @@ worldOverlay.onclick = (e) => {
 });
 
 };
+
+document.getElementById("historyPopup").addEventListener("click", function(e){
+    if(e.target.id === "historyPopup"){
+        this.classList.remove("active");
+    }
+});
+
+
+document.getElementById("historyBtn").onclick = function(){
+
+    const popup = document.getElementById("historyPopup");
+    const list = document.getElementById("historyList");
+
+    const deathTab = document.getElementById("tabDeath");
+    const recordedTab = document.getElementById("tabRecorded");
+
+
+    list.innerHTML = "Loading...";
+
+    db.ref("bossHistory").once("value", snap => {
+
+        const data = snap.val();
+        list.innerHTML = "";
+
+        if(!data){
+            list.innerHTML = "<p>No history yet.</p>";
+            return;
+        }
+
+        let allEntries = Object.values(data).filter(entry =>
+            entry &&
+            entry.boss &&
+            entry.deathTime &&
+            entry.recordedAt
+        );
+
+        function renderList(sortType){
+
+            list.innerHTML = "";
+
+            if(sortType === "death"){
+                allEntries.sort((a,b)=> b.deathTime - a.deathTime);
+            } else {
+                allEntries.sort((a,b)=> b.recordedAt - a.recordedAt);
+            }
+
+            allEntries.forEach(entry => {
+
+                const div = document.createElement("div");
+                div.className = "history-entry";
+
+                div.innerHTML = `
+                    <div class="history-boss">${entry.boss}</div>
+                    <div class="history-time">
+                        ${sortType === "death"
+                            ? new Date(entry.deathTime).toLocaleString()
+                            : new Date(entry.recordedAt).toLocaleString()
+                        }
+                    </div>
+                `;
+
+                list.appendChild(div);
+            });
+        }
+
+        // 🔥 Default tab = Death Time
+        renderList("death");
+
+        deathTab.onclick = function(){
+            deathTab.classList.add("active");
+            recordedTab.classList.remove("active");
+            renderList("death");
+        };
+
+        recordedTab.onclick = function(){
+            recordedTab.classList.add("active");
+            deathTab.classList.remove("active");
+            renderList("recorded");
+        };
+
+    });
+
+    popup.classList.add("active");
+};
+
+
+function limitBossHistory(){
+
+    db.ref("bossHistory").once("value", snap => {
+
+        const data = snap.val();
+        if(!data) return;
+
+        const entries = Object.entries(data);
+
+        if(entries.length <= 25) return;
+
+        // Sort oldest first
+        entries.sort((a,b) => 
+            a[1].recordedAt - b[1].recordedAt
+        );
+
+        const removeCount = entries.length - 25;
+
+        for(let i = 0; i < removeCount; i++){
+            const keyToRemove = entries[i][0];
+            db.ref("bossHistory/" + keyToRemove).remove();
+        }
+
+    });
+}
+
 
 
 
