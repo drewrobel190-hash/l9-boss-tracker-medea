@@ -1111,183 +1111,6 @@ function closeMapOverlay(){
 }
 
 
-
-// ================= CONTINENT MAP SYSTEM =================
-
-const continents = {
-  elsera: {
-    Dien: [
-  { name: "Dien Port", level: "", img: "Maps/Dien/Dient Port.png" },
-  { name: "Northern Dien", level: "Lv. 1-9", img: "Maps/Dien/Nothern Dien.png" },
-  { name: "Gray Ruins", level: "Lv. 11-19", img: "Maps/Dien/Gray Ruins.png" },
-  { name: "Corrupted Basin", level: "Lv. 20-30", img: "Maps/Dien/Corrupted Basin.png" },
-  { name: "Secret Laboratory", level: "Lv. 32-55", img: "Maps/Dien/Secret Laboratory.png" }
-],
-
-
-    Lindris: [
-      { name: "Lindris", level: "", img: "Maps/Lindris/Lindris.png" },
-      { name: "Crescent Lake", level: "Lv. 37-41", img: "Maps/Lindris/Cresendent Lake.png" },
-      { name: "Twilight Hill", level: "Lv. 43-48", img: "Maps/Lindris/Twilight Hill.png" },
-    ],
-
-    Ulan: [
-      { name: "Ulan", level: "", img: "Maps/Ulan/Ulan .png" },
-      { name: "Ulan Canyon", level: "Lv. 50-56", img: "Maps/Ulan/Ulan Canyon.png" },
-      { name: "Protector's Ruins", level: "Lv. 55-59", img: "Maps/Ulan/Protector's Ruins.png" },
-      { name: "Desert of the Screaming", level: "Lv. 62-68", img: "Maps/Ulan/Desert of the Screaming.png" },
-      { name: "Lower Tomb of Tyriosa 1F", level: "Lv. 65-70", img: "Maps/Ulan/Lower Tomb of Tyriosa 1F.png" },
-      { name: "Lower Tomb of Tyriosa 2F", level: "Lv. 74-82", img: "Maps/Ulan/Lower Tomb of Tyriosa 2F.png" },
-      { name: "Lower Tomb of Tyriosa 3F", level: "Lv. 88-102", img: "Maps/Ulan/Lower Tomb of Tyriosa 3F.png" }
-    ],
-
-    Serbis: [
-      { name: "Serbis", level: "" },
-      { name: "Land of Glory", level: "Lv. 70-78" },
-      { name: "Battlefield of Templar", level: "Lv. 76-88" },
-      { name: "Plateau of Revolution", level: "Lv. 85-94" },
-      { name: "Ruins of the War", level: "Lv. 91-100" },
-      { name: "Silvergrass Field", level: "Lv. 101-108" },
-      { name: "Barbas", level: "Lv. 105-115" },
-      { name: "Deadman's Land District 1", level: "Lv. 87-92" },
-      { name: "Deadman's Land District 2", level: "Lv. 95-100" },
-      { name: "Deadman's Land District 3", level: "Lv. 105-113" }
-    ]
-  },
-
-  kransia: {
-  "Ashen Haven": [
-    { 
-      name: "Ashen Haven",
-      level: "",
-      img: "Maps/Kransia/Ashen Haven.png"
-
-      
-    },
-
-     { 
-      name: "Fallen Wasteland",
-      level: "",
-      img: "Maps/Kransia/Fallen Wasteland.png"
-    }
-  ],
-
-  
-}
-
-};
-
-// ===== MAP BOSS LOCATIONS =====
-const mapBossData = {
-
-    "Maps/Dien/Dient Port.png": [
-      { name: "Dien Port Plaza", type: "portal", x: 763, y: 474 }
-    ],
-
-    "Maps/Dien/Corrupted Basin.png": [
-      { name: "Venatus", x: 939, y: 428 },
-      { name: "Clemantis", x: 636, y: 111 },
-
-        //  Portals teshi
-        { name: "Fetid Puddle", type: "portal", x: 702, y: 455 },
-        { name: "In Front of Secret Laboratory", type: "portal", x: 602, y: 227 },
-        { name: "Reeking Land", type: "portal", x: 647, y: 728 },
-
-      
-        { name: "Secret Laboratory", type: "dungeon", level: "Lv. 32-55",x: 612, y: 156},
-
-
-        //  Elites teshi
-        { name: "Corrupted ShellBug", type: "elite", level: "Lv. 30", x: 636, y: 566 },
-        { name: "Brutal Butcher", type: "elite", level: "Lv. 35", x: 364, y: 452 }
-
-    ],
-
-    "Maps/Dien/Nothern Dien.png": [
-
-        { name: "Deligeon Ranger Hideout", type: "portal", x: 660, y: 81 },
-        { name: "Deligeon Ranger Post 2", type: "portal", x: 604, y: 481 },
-
-        { name: "Outlaw Kaiser", type: "elite", level: "14", x: 597, y: 310 },
-        { name: "Screaming Wings", type: "elite", level: "Lv. 8", x: 952, y: 422 }
-
-        
-    ],
-
-    "Maps/Dien/Gray Ruins.png": [
-        { name: "Abandoned Camp", type: "portal", x: 780, y: 383 },
-        { name: "Execution Ground", type: "portal", x: 543, y: 476 },
-        
-        { name: "Dark Apparition", type: "elite", level: "Lv. 23", x: 445, y: 316 },
-        { name: "Suspicious Wizard", type: "elite", level: "Lv. 19", x: 1008, y: 430 },
-
-    ],
-
-    "Maps/Dien/Secret Laboratory.png": [
-        { name: "Undomiel", x: 816, y: 242}, 
-
-        { name: "Magic Puppet", type: "elite", level: "Lv. 60", x: 890, y: 455 },
-        { name: "Wizards Pet", type: "elite", level: "Lv. 60", x: 789, y: 536 },
-        { name: "Secret Creation", type: "elite", level: "Lv. 40", x: 627, y: 174 }
-    ],
-
-    "Maps/Lindris/Lindris.png": [
-        { name: "FLoating Tower", type: "portal", x: 422, y: 625 }
-    ],
-
-    "Maps/Lindris/Cresendent Lake.png": [
-        { name: "Saphirus", x: 693, y: 436 },
-        { name: "Viorent", x: 439, y: 340 },
-
-        { name: "Twitching Darkness", type: "portal", x: 506, y: 417 },
-        { name: "Silent Moonlight", type: "portal", x: 659, y: 356 },
-        { name: "Moonlight Wave", type: "portal", x: 785, y: 569 },
-
-        { name: "Lamia Shaman", type: "elite", level: "Lv. 46", x: 900, y: 439 },
-        { name: "Angusto", type: "elite", level: "Lv. 46", x: 558, y: 223 },
-
-    ],
-
-    "Maps/Lindris/Twilight Hill.png": [
-        { name: "Ratan", x: 873, y: 287 },
-
-        { name: "Lady Dalia", x: 470, y: 277 },
-        { name: "Thymele", x: 507, y: 595 },
-
-        { name: "Precarious Transport Route", type: "portal", x: 652, y: 623 },
-        { name: "Daybreak Hill", type: "portal", x: 613, y: 399 },
-        { name: "Twilight Way", type: "portal", x: 716, y: 214 },
-
-        { name: "Charging Thardus", type: "elite", level: "Lv. 53", x: 403, y: 528 },
-        { name: "Ancient Thardus", type: "elite", level: "Lv. 49", x: 622, y: 255 },
-        { name:  "Berserk Thardus", type: "elite", level: "Lv. 54", x: 892, y: 497 },
-    ],
-
-    "Maps/Ulan/Ulan .png": [
-        { name: "Plaza of Liberation", type: "portal", x: 583, y: 460 },  
-    ],
-
-    "Maps/Ulan/Ulan Canyon.png": [
-        { name: "Ego", x: 319, y: 484 },
-
-        { name: "Rocky Mountain", type: "portal", x: 545, y: 542 },
-        { name: "Farmyard", type: "portal", x: 697, y: 288 },
-        { name: "Canyon Entrance", type: "portal", x: 837, y: 517 },
-        
-        { name: "Ancient Turtle", type: "elite", level: "Lv. 58", x: 769, y: 686 },
-        { name: "Desert Golem", type: "elite", level: "Lv. 57", x: 556, y: 312 },
-        { name: "Alarak", type: "elite", level: "Lv. 49", x: 407, y: 468 },
-    ],
-
-     "Maps/Ulan/Protector's Ruins.png": [
-        { name: "Parto", x: 652, y: 189 },
-
-        { name: "Acient Traces", type: "portal", x: 383, y: 363 },
-        { name: "Nesha's Holy Site", type: "portal", x: 632, y: 443 },
-        { name: "Acient Kingdom's Garden", type: "portal", x: 964, y: 427 },
-    ]
-};
-
 // ===== RENDER BOSS MARKERS =====
 function renderBossMarkers(imagePath){
 
@@ -1563,6 +1386,7 @@ worldOverlay.onclick = (e) => {
 document.getElementById("historyPopup").addEventListener("click", function(e){
     if(e.target.id === "historyPopup"){
         this.classList.remove("active");
+        document.body.style.overflow = "auto";
     }
 });
 
@@ -1657,6 +1481,8 @@ document.getElementById("historyBtn").onclick = function(){
     });
 
     popup.classList.add("active");
+    document.body.style.overflow = "hidden";
+
 };
 
 
