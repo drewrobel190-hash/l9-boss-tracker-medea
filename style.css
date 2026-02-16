@@ -19,29 +19,54 @@ body::before{
     pointer-events:none;
 }
 
+/* ===== OVERLAY BACKGROUND ===== */
 .overlay {
-    display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+
+    display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+
+    z-index: 20000; /* 🔥 FORCE ABOVE EVERYTHING */
 }
 
+
+/* Active state */
 .overlay.active {
-    display: flex;
+    opacity: 1;
+    pointer-events: auto;
 }
 
+/* ===== POPUP BOX ===== */
 .overlay-content {
-    background: #1e1e1e;
-    padding: 20px;
-    border-radius: 10px;
-    width: 400px;
-    max-height: 70vh;
-    overflow-y: auto;
-    color: white;
+    background: linear-gradient(145deg, #1f1f1f, #2b2b2b);
+    padding: 30px;
+    border-radius: 16px;
+    width: 500px;
+    max-width: 90%;
+
+    transform: scale(0.85) translateY(20px);
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(.18,.89,.32,1.28);
+
+    z-index: 20001;
+    position: relative;
+
 }
+
+/* When active */
+.overlay.active .overlay-content {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
 
 
 @keyframes darkFlow {
@@ -2357,4 +2382,30 @@ body::-webkit-scrollbar-thumb:hover {
 
 .history-tab:hover {
     background: #3a3a3a;
+}
+
+/* ===== HISTORY SCROLL AREA ===== */
+#historyList {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+/* Scrollbar */
+#historyList::-webkit-scrollbar {
+    width: 8px;
+}
+
+#historyList::-webkit-scrollbar-track {
+    background: #1e1e1e;
+    border-radius: 10px;
+}
+
+#historyList::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #f5c84c, #b98d1f);
+    border-radius: 10px;
+}
+
+#historyList::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ffd95c, #c79c2c);
 }
