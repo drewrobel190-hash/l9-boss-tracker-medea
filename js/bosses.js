@@ -183,7 +183,7 @@ location: "Corrupted Basin > Benji's Cave"
     
   name: "Icaruthia",
   type: "fixed",
-  disabled: true,
+  disabled: false,
   schedule: [
     { day: 2, time: "21:00" },
     { day: 5, time: "21:00" }
@@ -299,4 +299,5 @@ image:"Pictures/Tumier.png"},
 
 
 ];
+
 
