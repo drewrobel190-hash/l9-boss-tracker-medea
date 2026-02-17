@@ -771,6 +771,15 @@ Neutro: [
     img: "Boss loots/99.Motti/Benten.png",
     desc: "",
     stats: "Melee Defense: 9000 | Ranged Defense: 8000 | Magic Defense: 1 | Additional Option: 3 Options"
+      },
+
+        {
+    name: "Raito's Black Thorn Salawal",
+    rarity: "Mythic",
+    type: "Cloth Pants",
+    img: "Boss loots/99.Motti/Pants.png",
+    desc: "",
+    stats: "Bag Weight: 500 | Gold Loss: 25% | Endurance Ignorance: Solid | Additional Option: 3 Options"
       }
     ],
 
@@ -871,3 +880,4 @@ const allLootData = {
 
 ]
 };
+
