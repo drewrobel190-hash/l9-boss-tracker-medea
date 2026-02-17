@@ -222,7 +222,7 @@ Araneo: [
 },
 
 {
-    name: "Serbis Helm",
+    name: "Serbis Helm +5",
     rarity: "Epic",
     type: "Helmet",
     img: "Boss loots/6.Araneo/Serbis Helm.png",
@@ -752,6 +752,28 @@ Neutro: [
   }
   ],
 
+   Icaruthia: [
+      {
+    name: "Raito's Battle Door",
+    rarity: "Legendary",
+    type: "Battle Shield",
+    img: "Boss loots/99.Motti/Door.png",
+    desc: "",
+    stats: "Melee Attack: -100 | Tetanus Poison: 9999.99 | Knockout Damage: 69 | Additional Option: 3 Options"
+      }
+   ],
+
+    Motti: [
+      {
+    name: "Raito's T SHIRT",
+    rarity: "Legendary",
+    type: "Armor",
+    img: "Boss loots/99.Motti/Benten.png",
+    desc: "",
+    stats: "Melee Defense: 9000 | Ranged Defense: 8000 | Magic Defense: 1 | Additional Option: 3 Options"
+      }
+    ],
+
 
 
     Ordo: [
@@ -849,4 +871,3 @@ const allLootData = {
 
 ]
 };
-
