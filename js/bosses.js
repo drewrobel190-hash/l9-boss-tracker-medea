@@ -194,7 +194,7 @@ location: "Corrupted Basin > Benji's Cave"
 {
   name: "Motti",
   type: "fixed",
-  disabled: true,
+  disabled: false,
   schedule: [
     { day: 3, time: "19:00" },  // Wednesday
     { day: 6, time: "19:00" }   // Saturday
@@ -205,7 +205,7 @@ location: "Corrupted Basin > Benji's Cave"
 {
   name: "Nevaeh",
   type: "fixed",
-  disabled: true,
+  disabled: false,
   schedule: [
     { day: 0, time: "22:00" }   // Sunday
   ],
@@ -299,5 +299,6 @@ image:"Pictures/Tumier.png"},
 
 
 ];
+
 
 
