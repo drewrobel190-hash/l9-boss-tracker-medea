@@ -222,7 +222,7 @@ Araneo: [
 },
 
 {
-    name: "Serbis Helm +5",
+    name: "Serbis Helm",
     rarity: "Epic",
     type: "Helmet",
     img: "Boss loots/6.Araneo/Serbis Helm.png",
@@ -849,3 +849,4 @@ const allLootData = {
 
 ]
 };
+
