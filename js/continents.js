@@ -229,5 +229,139 @@ const mapBossData = {
         { name: "Priest Petroca", type: "Unique Monster", level: "Lv. 103", x: 369, y: 400 },
         { name: "Escort Leader Maximus", type: "Unique Monster", level: "Lv. 103", x: 576, y: 260 },
 
-    ]
+    ],
+
+    "Maps/Serbis/Serbis.png": [
+      { name: "Serbis Plaza", type: "Portal", x: 851, y: 632 },
+    ],
+
+    "Maps/Serbis/Land of Glory.png": [
+      { name: "Amentis", x: 490, y: 247 },
+
+      { name: "Path to Daybreak", type: "Portal", x: 782, y: 348 },
+      { name: "Cracking Rock", type: "Portal", x: 613, y: 442 },
+      { name: "Truimphal Road", type: "Portal", x: 737, y: 669 },
+
+      { name: "Sylandra", type: "Unique Monster", level: "Lv. 78", x: 782, y: 398 },
+      { name: "Halfmoon Stone Turle", type: "Unique Monster", level: "Lv. 78", x: 525, y: 278 },
+      { name: "Cobolt Blitz Captain", type: "Unique Monster", level: "Lv. 83", x: 630, y: 746 },
+    ],
+
+    "Maps/Serbis/Battlefield of Templar.png": [
+      { name: "Nedra", x: 485, y: 335 },
+
+      { name: "Baron Braudmore", x: 813, y: 304 },
+      { name: "Ringor", x: 652, y: 688 },
+
+      { name: "Deadman's Land", type: "Dungeon", x: 664, y: 152 },
+
+      { name: "Dark Orh Watchtower", type: "Portal", x: 968, y: 455 },
+      { name: "Deadman's Land Entrance", type: "Portal", x: 715, y: 220 },
+      { name: "Serad Crusade Basecamp", type: "Portal", x: 676, y: 411 },
+      { name: "Purified Battlefield", type: "Portal", x: 542, y: 518 },
+
+      { name: "Forgotten Olive", type: "Unique Monster", level: "Lv. 87", x: 708, y: 376 },
+      { name: "Deadman's Grow", type: "Unique Monster", level: "Lv. 93", x: 556, y: 688 },
+      { name: "Black Wings", type: "Unique Monster", level: "Lv. 93", x: 678, y: 788 },
+    ],
+
+    "Maps/Serbis/Plateau of Revolution.png": [
+      { name: "Wannitas", x: 415, y: 316 },
+      { name: "Metus", x: 835, y: 325 },
+      { name: "Duplican", x: 606, y: 463 },
+
+      { name: "Ritual Site of Succession", type: "Portal", x: 515, y: 306 },
+      { name: "Maigc Stone Ruins", type: "Portal", x: 774, y: 345 },
+      { name: "Seat of Gluttony", type: "Portal", x: 480, y: 558 },
+      { name: "Trace of Curse", type: "Portal", x: 757, y: 554 },
+      { name: "Excavation Camp", type: "Portal", x: 607, y: 760 },
+
+      { name: "Cassandra", type: "Unique Monster", level: "Lv. 92", x: 333, y: 530 },
+      { name: "Red Lizardman Patrol Captain", type: "Unique Monster", level: "Lv. 94", x: 618, y: 91 },
+      { name: "Mutated Scorpion", type: "Unique Monster", level: "Lv. 97", x: 812, y: 383 },
+      { name: "Berserk Higher Harpy", type: "Unique Monster", level: "Lv. 99", x: 851, y: 591 },
+    ],
+
+    "Maps/Serbis/Ruins of the War.png": [
+      { name: "Shuliar", x: 652, y: 172 },
+      { name: "Shuliar", x: 623, y: 783 },
+
+      { name: "Lael's Basecamp", type: "Portal", x: 331, y: 425 },
+      { name: "Stronghold of Faith", type: "Portal", x: 577, y: 350 },
+      { name: "Shuliar Fort", type: "Portal", x: 731, y: 312 },
+      { name: "Great Plains", type: "Portal", x: 508, y: 658 },
+      { name: "Renants of Garbana Waterway", type: "Portal", x: 807, y: 630 },
+
+      { name: "Lyrian", type: "Unique Monster", level: "Lv. 98", x: 360, y: 588 },
+      { name: "Durian", type: "Unique Monster", level: "Lv. 103", x: 646, y: 331 },
+      { name: "Infected kukri", type: "Unique Monster", level: "Lv. 103", x: 809, y: 391 },
+      { name: "Straggler Brown", type: "Unique Monster", level: "Lv. 104", x: 908, y: 515 },
+    ],
+
+    "Maps/Serbis/Silvergrass Field.png": [
+      { name: "Supore", x: 718, y: 424 },
+      { name: "Asta", x: 736, y: 587 },
+      { name: "Ordo", x: 811, y: 653 },
+      { name: "Secreta", x: 925, y: 516 },
+      { name: "Chaiflock", x: 953, y: 399 },
+
+      { name: "Traveller's Camp", type: "Portal", x: 548, y: 185 },
+      { name: "Next to the River of Giant", type: "Portal", x: 514, y: 427 },
+      { name: "Silvergrass Plain", type: "Portal", x: 426, y: 610 },
+      { name: "Shadow of Giant", type: "Portal", x: 664, y: 377 },
+      { name: "Land of Goldblood Giant", type: "Portal", x: 817, y: 477 },
+
+      { name: "Shaug High-Ranking Wizard", type: "Unique Monster", level: "Lv. 105", x: 601, y: 110 },
+      { name: "Shaug Blitz Captain", type: "Unique Monster", level: "Lv. 109", x: 275, y: 488 },
+      { name: "Shaug Patrol Captain", type: "Unique Monster", level: "Lv. 110", x: 712, y: 692 },
+      { name: "Veridon", type: "Unique Monster", level: "Lv. 113", x: 774, y: 443 },
+
+    ],
+
+    "Maps/Serbis/Barbas.png": [
+      { name: "Benji", x: 449, y: 314 },
+
+      { name: "Treasure Hunter Camp", type: "Portal", x: 295, y: 445 },
+      { name: "Heart Wet Land", type: "Portal", x: 621, y: 611 },
+      { name: "Bone Grave", type: "Portal", x: 704, y: 517 },
+      { name: "Dragon Valley Entrance", type: "Portal", x: 860, y: 405 },
+      { name: "Dragon Nest", type: "Portal", x: 686, y: 136 },
+
+      { name: "Restrained Soul", type: "Unique Monster", level: "Lv. 112", x: 610, y: 794 },
+      { name: "Flame Wolf", type: "Unique Monster", level: "Lv. 114", x: 826, y: 581 },
+      { name: "Giant Wyvern", type: "Unique Monster", level: "Lv. 112", x: 537, y: 707 },
+      { name: "Red Lizardman Sniper Captain", type: "Unique Monster", level: "Lv. 110", x: 411, y: 628 },
+    ],
+
+    "Maps/Serbis/Deadman's Land District 1.png": [
+      { name: "Gareth", x: 586, y: 595 },
+
+      { name: "Move to the Deadman's Land District 2", type: "Dungeon", x: 602, y: 291 },
+
+      { name: "Elder Lich", type: "Unique Monster", level: "Lv. 97", x: 661, y: 286 },
+      { name: "Catena's Eye", type: "Unique Monster", level: "Lv. 97", x: 665, y: 427 },
+      
+    ],
+
+    "Maps/Serbis/Deadman's Land District 2.png": [
+      { name: "Titore", x: 583, y: 367 },
+
+      { name: "Move to the Deadman's Land District 3", type: "Dungeon", x: 566, y: 609 },
+      { name: "Move to the Deadman's Land District 1", type: "Dungeon", x: 655, y: 133 },
+
+      { name: "Elder Scorpious", type: "Unique Monster", level: "Lv. 105", x: 719, y: 488 },
+      { name: "Catena's Servant", type: "Unique Monster", level: "Lv. 105", x: 888, y: 455 },
+      { name: "Catena's Cry", type: "Unique Monster", level: "Lv. 105", x: 517, y: 556 },
+    ],
+
+    "Maps/Serbis/Deadman's Land District 3.png": [
+      { name: "Catena", x: 642, y: 386 },
+
+      { name: "Move to the Deadman's Land District 2", type: "Dungeon", x: 413, y: 509 },
+
+      { name: "Catena's Ego", type: "Unique Monster", level: "Lv. 118", x: 373, y: 438 },
+      { name: "Catena's Rage", type: "Unique Monster", level: "Lv. 118", x: 714, y: 221 },
+      { name: "Catena's Sorrow", type: "Unique Monster", level: "Lv. 118", x: 844, y: 355 },
+    ],
+
 };
