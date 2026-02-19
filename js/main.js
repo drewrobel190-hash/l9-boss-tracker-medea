@@ -26,6 +26,16 @@ let isTyping = false;
 let isAdmin = false;
 let expandedCard = null;
 
+const admins = [
+    { username: "Teshi", password: "190190" },
+    { username: "Raitoo", password: "180180" },
+    { username: "Aetheris", password: "170170" },
+    { username: "RuiJinguBang", password: "160160" }
+];
+
+let currentAdminUser = null;
+
+
 function resetCardState(card){
     if(!card) return;
 
@@ -317,27 +327,38 @@ function adminLogin(){
 
     const btn = document.querySelector(".admin-btn");
 
-    // 🔁 If already admin → LOG OUT
+    // Logout
     if(isAdmin){
         isAdmin = false;
+        currentAdminUser = null;
         btn.classList.remove("active-admin");
-        alert("Admin mode deactivated");
+        alert("Admin logged out");
         applyAdminMode();
         return;
     }
 
-    // 🔐 If not admin → ask password
-    const password = prompt("Enter Admin Password:");
+    const username = prompt("Enter Username:");
+    if(!username) return;
 
-    if(password === "1900"){
+    const password = prompt("Enter Password:");
+    if(!password) return;
+
+    const match = admins.find(admin =>
+        admin.username === username &&
+        admin.password === password
+    );
+
+    if(match){
         isAdmin = true;
+        currentAdminUser = match.username;
         btn.classList.add("active-admin");
-        alert("Admin mode activated");
+        alert("Welcome " + match.username);
         applyAdminMode();
     } else {
-        alert("Wrong password");
+        alert("Invalid credentials");
     }
 }
+
 
 
 
@@ -434,7 +455,14 @@ function createCard(boss){
 
 
     ` : boss.type === "fixed" && boss.disabled ? `
+    <div class="badge-group">
     <div class="badge">Fixed</div>
+    ${boss.continent === "Kransia" ? 
+        '<div class="continent-badge">Kransia</div>' 
+        : ''
+    }
+</div>
+
     <div class="name">${boss.name}</div>
     <div class="timer">No Contest</div>
     <div class="spawn">
@@ -445,7 +473,14 @@ function createCard(boss){
     </div>
 `
 : `
+    <div class="badge-group">
     <div class="badge">Fixed</div>
+    ${boss.continent === "Kransia"
+        ? '<div class="continent-badge">Kransia</div>'
+        : ''
+    }
+</div>
+
     <div class="name">${boss.name}</div>
     <div class="timer">--</div>
     <div class="spawn"></div>
@@ -823,7 +858,8 @@ if (setBtn) {
     db.ref("bossHistory").push({
     boss: currentAdminBoss,
     deathTime: death.getTime(),
-    recordedAt: Date.now()
+    recordedAt: Date.now(),
+    setBy: currentAdminUser || "Unknown"
 }).then(() => {
     limitBossHistory();
 });
@@ -867,7 +903,8 @@ if (customBtn) {
         db.ref("bossHistory").push({
     boss: currentAdminBoss,
     deathTime: death.getTime(),
-    recordedAt: Date.now()
+    recordedAt: Date.now(),
+    setBy: currentAdminUser || "Unknown"
 }).then(() => {
     limitBossHistory();
 });
@@ -1444,7 +1481,10 @@ const timeValue = sortType === "death"
     : entry.recordedAt;
 
 div.innerHTML = `
-    <div class="history-boss">${entry.boss}</div>
+    <div class="history-boss">
+    ${entry.boss}
+    ${entry.setBy ? `<span style="color:#f5c542; font-size:12px;"> • ${entry.setBy}</span>` : ""}
+</div>
     <div class="history-time">
         ${new Date(timeValue).toLocaleString("en-US", {
             timeZone: zone,
