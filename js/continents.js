@@ -15,6 +15,7 @@ window.continents = {
       { name: "Lindris", level: "", img: "Maps/Lindris/Lindris.png" },
       { name: "Crescent Lake", level: "Lv. 37-41", img: "Maps/Lindris/Cresendent Lake.png" },
       { name: "Twilight Hill", level: "Lv. 43-48", img: "Maps/Lindris/Twilight Hill.png" },
+      { name: "Dracas Volcano", level: "Lv. 105-115", img: "" },
     ],
 
     Ulan: [
