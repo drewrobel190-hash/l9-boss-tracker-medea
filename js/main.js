@@ -26,12 +26,6 @@ let isTyping = false;
 let isAdmin = false;
 let expandedCard = null;
 
-const admins = [
-    { username: "Teshi", password: "190190" },
-    { username: "Raitoo", password: "180180" },
-    { username: "Aetheris", password: "170170" },
-    { username: "RuiJinguBang", password: "160160" }
-];
 
 let currentAdminUser = null;
 
@@ -873,6 +867,13 @@ if (setBtn) {
 
 
 }
+
+const admins = [
+    { username: "Teshi", password: "190190" },
+    { username: "Raitoo", password: "180180" },
+    { username: "Aetheris", password: "170170" },
+    { username: "RuiJinguBang", password: "160160" }
+]; 
 
 const customBtn = document.getElementById("adminCustomBtn");
 
