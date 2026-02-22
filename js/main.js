@@ -26,6 +26,7 @@ let isTyping = false;
 let isAdmin = false;
 let expandedCard = null;
 
+let discordAlertsSent = {};
 
 let currentAdminUser = null;
 
@@ -601,10 +602,12 @@ if(boss.disabled){
         if(boss.type==="interval"){
             const saved = cloudData[boss.name];
             if(!saved){
-                timerEl.innerText="Not Set";
-                card.dataset.spawn = Infinity;
-                return;
-            }
+    timerEl.classList.remove("ready","warning");
+    timerEl.innerText = "Not Set";
+    spawnEl.innerText = "";
+    card.dataset.spawn = Infinity;
+    return;
+}
             spawn = new Date(saved);
         } else {
             spawn = getNextFixedSpawn(boss.schedule);
@@ -613,10 +616,20 @@ if(boss.disabled){
         const remaining = spawn - nowUTC;
         card.dataset.spawn = spawn.getTime();
 
-        if(remaining>0){
-            timerEl.classList.remove("ready","warning");
-            if(remaining<=3600000) timerEl.classList.add("warning");
+        if (remaining > 0) {
 
+    timerEl.classList.remove("ready","warning");
+
+    if (remaining <= 3600000) {
+        timerEl.classList.add("warning");
+    }
+
+   
+    if (remaining <= 900000 && !discordAlertsSent[boss.name]) {
+
+        sendDiscordAlert("⚔️ " + boss.name + " spawning in 15 minutes!");
+        discordAlertsSent[boss.name] = true;
+    }
             timerEl.innerText = formatTime(remaining);
 
             // Converted stored UTC spawn to selected timezone shiet
@@ -849,6 +862,8 @@ if (setBtn) {
 
     db.ref("bossTimers/" + currentAdminBoss).set(spawn);
 
+    discordAlertsSent[currentAdminBoss] = false;
+
     db.ref("bossHistory").push({
     boss: currentAdminBoss,
     deathTime: death.getTime(),
@@ -900,6 +915,8 @@ if (customBtn) {
         spawn += Math.floor(Math.random() * 59) * 1000;
 
         db.ref("bossTimers/" + currentAdminBoss).set(spawn);
+
+        discordAlertsSent[currentAdminBoss] = false;
 
         db.ref("bossHistory").push({
     boss: currentAdminBoss,
@@ -989,6 +1006,7 @@ function applyAdminMode(){
         historyBtn.style.display = "inline-block";
     }
 }
+
 
 
 function startTimer(){
@@ -1562,5 +1580,4 @@ function limitBossHistory(){
 createWorldBossCard("Ratan", 60, "Pictures/World boss/Ratan.png", "Tomb of Time");
 createWorldBossCard("Parto", 85, "Pictures/World boss/Parto.png", "Magic Puppet's Yearning");
 createWorldBossCard("Nedra", 105, "Pictures/World boss/Nedra.png", "Bloodsoaked Plateau");
-
 
