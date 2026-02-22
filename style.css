@@ -168,6 +168,7 @@ select{
     animation: softGlow 4s ease-in-out infinite alternate;
 }
 
+
 @keyframes softGlow{
     0%{
         box-shadow: 0 0 6px rgba(255,59,59,0.15);
@@ -560,7 +561,11 @@ header{
 
 .boss-img{
     width:110px;
+     height:150px;
     object-fit:cover;
+    object-position:top;
+    image-rendering: auto;
+    
 }
 
 .card-content{
