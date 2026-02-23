@@ -649,7 +649,7 @@ if(existingGuildTag){
 if(guild){
     const guildTag = document.createElement("span");
     guildTag.className = "guild-tag";
-    guildTag.innerText = " 👑 " + guild;
+    guildTag.innerHTML = `<span class="crown">👑</span>${guild}`;
     nameEl.appendChild(guildTag);
 }
 
@@ -671,7 +671,7 @@ if(boss.type === "fixed"){
     if(guild){
         const guildTag = document.createElement("span");
         guildTag.className = "guild-tag";
-        guildTag.innerText = " 👑 " + guild;
+        guildTag.innerHTML = `<span class="crown">👑</span>${guild}`;
         nameEl.appendChild(guildTag);
     }
 }
