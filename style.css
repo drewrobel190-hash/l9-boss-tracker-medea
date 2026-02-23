@@ -577,7 +577,12 @@ header{
 
 
 
-.name{ font-weight:bold; }
+.name{
+    font-weight:bold;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+}
 
 .timer{ color:#4da6ff; margin-top:5px; }
 
@@ -2533,11 +2538,20 @@ body::-webkit-scrollbar-thumb:hover {
     font-size:12px;
     font-weight:600;
     color:#f5c542;
-    margin-left:6px;
+    gap:4px;
+    display:inline-flex;
+    align-items:center;
 
+    margin-left:6px;
     text-shadow:0 0 6px rgba(245,200,66,0.6);
 }
 
+.guild-tag .crown{
+    font-size:12px;
+    line-height:1;
+    position:relative;
+    top:-1px; /* tiny vertical correction */
+}
 #adminRemoveGuildBtn{
     padding:6px 12px;
     font-size:13px;
