@@ -925,69 +925,74 @@ function closeAdminLayer(){
 const setBtn = document.getElementById("adminSetBtn");
 
 if (setBtn) {
-setBtn.onclick = function(){
+    setBtn.onclick = function(){
 
-    if(!currentAdminBoss){
-        alert("No boss selected.");
-        return;
-    }
+        if(!currentAdminBoss){
+            alert("No boss selected.");
+            return;
+        }
 
-    const bossObj = bosses.find(b => b.name === currentAdminBoss);
+        const bossObj = bosses.find(b => b.name === currentAdminBoss);
 
-    // 🟣 IF FIXED BOSS → ONLY SAVE GUILD
-    if(bossObj?.type === "fixed"){
+        // 🟣 FIXED BOSS → ONLY GUILD
+        if(bossObj?.type === "fixed"){
 
+            const guild = document.getElementById("adminGuild").value || "";
+            db.ref("fixedBossGuilds/" + currentAdminBoss).set(guild);
+
+            closeAdminLayer();
+            return;
+        }
+
+        // 🔵 INTERVAL BOSS
+        const input = document.getElementById("adminTime").value;
         const guild = document.getElementById("adminGuild").value || "";
 
-        db.ref("fixedBossGuilds/" + currentAdminBoss).set(guild);
+        if(!input && !guild){
+            alert("Please set time or guild.");
+            return;
+        }
+
+        // If time is provided → update spawn
+        if(input){
+
+            const [h, m] = input.split(":");
+
+            const death = new Date();
+            const now = new Date();
+            death.setHours(parseInt(h), parseInt(m), now.getSeconds(), 0);
+
+            let spawn = death.getTime() + (currentAdminHours * 3600000);
+
+            db.ref("bossTimers/" + currentAdminBoss).set({
+                spawn: spawn,
+                guild: guild
+            });
+
+            db.ref("bossHistory").push({
+                boss: currentAdminBoss,
+                deathTime: death.getTime(),
+                recordedAt: Date.now(),
+                setBy: currentAdminUser || "Unknown"
+            }).then(() => {
+                limitBossHistory();
+            });
+
+        } 
+        else {
+            // Only update guild
+            db.ref("bossTimers/" + currentAdminBoss + "/guild").set(guild);
+        }
 
         closeAdminLayer();
-        return;
-    }
-
-    // 🔵 IF INTERVAL BOSS → SAVE TIMER + GUILD
-    const input = document.getElementById("adminTime").value;
-    if(!input){
-        alert("Please select a time.");
-        return;
-    }
-
-    const [h, m] = input.split(":");
-
-    const death = new Date();
-    const now = new Date();
-death.setHours(parseInt(h), parseInt(m), now.getSeconds(), 0);
-
-    let spawn = death.getTime() + (currentAdminHours * 3600000);
-
-    const guild = document.getElementById("adminGuild").value || "";
-
-    db.ref("bossTimers/" + currentAdminBoss).set({
-        spawn: spawn,
-        guild: guild
-    });
-    db.ref("bossHistory").push({
-    boss: currentAdminBoss,
-    deathTime: death.getTime(),
-    recordedAt: Date.now(),
-    setBy: currentAdminUser || "Unknown"
-}).then(() => {
-    limitBossHistory();
-});
-
-    closeAdminLayer();
-};
-
-
-
+    };
 }
 
 const admins = [
     { username: "Tesukamei", password: "190190" },
     { username: "Raitoo", password: "180180" },
     { username: "Aetheris", password: "170170" },
-    { username: "RuiJinguBang", password: "160160" },
-     { username: "StormCarbz", password: "150150" }
+    { username: "RuiJinguBang", password: "160160" }
 ]; 
 
 const customBtn = document.getElementById("adminCustomBtn");
@@ -1733,5 +1738,4 @@ function limitBossHistory(){
 createWorldBossCard("Ratan", 60, "Pictures/World boss/Ratan.png", "Tomb of Time");
 createWorldBossCard("Parto", 85, "Pictures/World boss/Parto.png", "Magic Puppet's Yearning");
 createWorldBossCard("Nedra", 105, "Pictures/World boss/Nedra.png", "Bloodsoaked Plateau");
-
 
