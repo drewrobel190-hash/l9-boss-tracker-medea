@@ -20,8 +20,15 @@ db.ref("bossTimers").on("value", snap => {
     sortBosses();
 });
 
+db.ref("fixedBossGuilds").on("value", snap => {
+    fixedGuildData = snap.val() || {};
+    updateTimers();
+    sortBosses(); 
+});
+
 
 let cloudData = {};
+let fixedGuildData = {};
 let isTyping = false;
 let isAdmin = false;
 let expandedCard = null;
@@ -426,6 +433,7 @@ function isTomorrow(spawn, now){
 function createCard(boss){
     const card = document.createElement("div");
     card.className="card";
+    card.dataset.name = boss.name;
     if (boss.category === "world") {
     card.dataset.category = "world";
 }
@@ -433,7 +441,9 @@ function createCard(boss){
     card.dataset.spawn = Infinity;
 
     const baseContent = boss.type === "interval" ? `
-        <div class="badge">Interval</div>
+        <div class="badge-group">
+    <div class="badge">Interval</div>
+</div>
         <div class="name">${boss.name} (${boss.hours}h)</div>
         <div class="timer">Not Set</div>
         <div class="spawn"></div>
@@ -480,6 +490,13 @@ function createCard(boss){
     <div class="timer">--</div>
     <div class="spawn"></div>
     <div class="fixed">Weekly Spawn</div>
+
+    <div class="admin-controls">
+    <button class="open-admin"
+        onclick="openAdminLayer('${boss.name}', 0)">
+        Set Guild
+    </button>
+</div>
 `;
 
 
@@ -570,7 +587,7 @@ function updateTimers(){
     const cards = Array.from(document.querySelectorAll(".card"));
 
     cards.forEach(card=>{
-        const bossName = card.querySelector(".name").innerText.split(" (")[0];
+        const bossName = card.dataset.name;
         const boss = bosses.find(b => b.name === bossName);
 
 if(!boss){
@@ -599,21 +616,73 @@ if(boss.disabled){
 
         let spawn;
 
-        if(boss.type==="interval"){
-            const saved = cloudData[boss.name];
-            if(!saved){
+        if(boss.type === "interval"){
+
+    const saved = cloudData[boss.name];
+
+if(!saved){
     timerEl.classList.remove("ready","warning");
     timerEl.innerText = "Not Set";
     spawnEl.innerText = "";
     card.dataset.spawn = Infinity;
     return;
 }
-            spawn = new Date(saved);
-        } else {
-            spawn = getNextFixedSpawn(boss.schedule);
-        }
 
-        const remaining = spawn - nowUTC;
+    let guild = "";
+
+    if(typeof saved === "object"){
+        guild = saved.guild || "";
+        spawn = new Date(saved.spawn);
+    } else {
+        spawn = new Date(saved);
+    }
+
+    // ===== GUILD BADGE SYSTEM =====
+    let nameEl = card.querySelector(".name");
+let existingGuildTag = nameEl.querySelector(".guild-tag");
+
+// Remove old one first
+if(existingGuildTag){
+    existingGuildTag.remove();
+}
+
+if(guild){
+    const guildTag = document.createElement("span");
+    guildTag.className = "guild-tag";
+    guildTag.innerText = " 👑 " + guild;
+    nameEl.appendChild(guildTag);
+}
+
+} else if (boss.type === "fixed") {
+    spawn = getNextFixedSpawn(boss.schedule);
+}
+
+if(boss.type === "fixed"){
+
+    let guild = fixedGuildData[boss.name] || "";
+
+    let nameEl = card.querySelector(".name");
+    let existingGuildTag = nameEl.querySelector(".guild-tag");
+
+    if(existingGuildTag){
+        existingGuildTag.remove();
+    }
+
+    if(guild){
+        const guildTag = document.createElement("span");
+        guildTag.className = "guild-tag";
+        guildTag.innerText = " 👑 " + guild;
+        nameEl.appendChild(guildTag);
+    }
+}
+if(!spawn){
+    // Only interval bosses should fall back to Infinity
+    if(boss.type === "interval"){
+        card.dataset.spawn = Infinity;
+        return;
+    }
+}
+        const remaining = spawn - now;
         card.dataset.spawn = spawn.getTime();
 
         if (remaining > 0) {
@@ -627,7 +696,7 @@ if(boss.disabled){
    
     if (remaining <= 900000 && !discordAlertsSent[boss.name]) {
 
-        sendDiscordAlert("⚔️ " + boss.name + " spawning in 15 minutes!");
+        //sendDiscordAlert("⚔️ " + boss.name + " spawning in 15 minutes!");
         discordAlertsSent[boss.name] = true;
     }
             timerEl.innerText = formatTime(remaining);
@@ -790,23 +859,44 @@ function openAdminLayer(name, hours){
     currentAdminBoss = name;
     currentAdminHours = hours;
 
-    document.getElementById("adminBossName").innerText = name;
-
     const bossObj = bosses.find(b => b.name === name);
-if(bossObj){
-    document.getElementById("adminBossImage").src = bossObj.image;
+    const adminImg = document.getElementById("adminBossImage");
+
+if(adminImg && bossObj?.image){
+    adminImg.src = bossObj.image;
 }
 
+    // 🔥 Select actual rows using IDs inside them
+    const quickTimeRow = document.getElementById("adminTime").closest(".admin-row");
+    const customRow = document.getElementById("adminDate").closest(".admin-row");
 
-    const spawn = cloudData[name];
-    if(spawn){
+    if(bossObj?.type === "fixed"){
+        quickTimeRow.style.display = "none";
+        customRow.style.display = "none";
+    } else {
+        quickTimeRow.style.display = "flex";
+        customRow.style.display = "flex";
+    }
+
+
+    let saved = cloudData[name];
+let spawnValue = null;
+
+if(saved){
+    if(typeof saved === "object"){
+        spawnValue = saved.spawn;
+    } else {
+        spawnValue = saved;
+    }
+}
+    if(spawnValue){
            const zone =
     selectedOffset === 9 ? "Asia/Seoul" :
     selectedOffset === 8 ? "Asia/Manila" :
     "Asia/Bangkok";
 
 const converted = new Date(
-    new Date(spawn).toLocaleString("en-US", { timeZone: zone })
+    new Date(spawnValue).toLocaleString("en-US", { timeZone: zone })
 );
 
     document.getElementById("adminCurrentTimer").innerText =
@@ -835,13 +925,27 @@ function closeAdminLayer(){
 const setBtn = document.getElementById("adminSetBtn");
 
 if (setBtn) {
-    setBtn.onclick = function(){
+setBtn.onclick = function(){
 
-    if(!currentAdminBoss || currentAdminHours == null){
+    if(!currentAdminBoss){
         alert("No boss selected.");
         return;
     }
 
+    const bossObj = bosses.find(b => b.name === currentAdminBoss);
+
+    // 🟣 IF FIXED BOSS → ONLY SAVE GUILD
+    if(bossObj?.type === "fixed"){
+
+        const guild = document.getElementById("adminGuild").value || "";
+
+        db.ref("fixedBossGuilds/" + currentAdminBoss).set(guild);
+
+        closeAdminLayer();
+        return;
+    }
+
+    // 🔵 IF INTERVAL BOSS → SAVE TIMER + GUILD
     const input = document.getElementById("adminTime").value;
     if(!input){
         alert("Please select a time.");
@@ -851,31 +955,18 @@ if (setBtn) {
     const [h, m] = input.split(":");
 
     const death = new Date();
-    death.setHours(parseInt(h), parseInt(m), 0, 0);
-
-    // DO NOT auto move to tomorrow
-    // We assume this is the last death time
+    const now = new Date();
+death.setHours(parseInt(h), parseInt(m), now.getSeconds(), 0);
 
     let spawn = death.getTime() + (currentAdminHours * 3600000);
 
-    spawn += Math.floor(Math.random() * 59) * 1000;
+    const guild = document.getElementById("adminGuild").value || "";
 
-    db.ref("bossTimers/" + currentAdminBoss).set(spawn);
+    db.ref("bossTimers/" + currentAdminBoss).set({
+        spawn: spawn,
+        guild: guild
+    });
 
-    discordAlertsSent[currentAdminBoss] = false;
-
-    db.ref("bossHistory").push({
-    boss: currentAdminBoss,
-    deathTime: death.getTime(),
-    recordedAt: Date.now(),
-    setBy: currentAdminUser || "Unknown"
-}).then(() => {
-    limitBossHistory();
-});
-
-
-
-    triggerTimerAnimation(currentAdminBoss);
     closeAdminLayer();
 };
 
@@ -912,9 +1003,20 @@ if (customBtn) {
 
         let spawn = death.getTime() + (currentAdminHours * 3600000);
 
-        spawn += Math.floor(Math.random() * 59) * 1000;
+    
 
-        db.ref("bossTimers/" + currentAdminBoss).set(spawn);
+        const guild = document.getElementById("adminGuild").value || "";
+
+if(guild){
+    db.ref("bossTimers/" + currentAdminBoss).set({
+        spawn: spawn,
+        guild: guild
+    });
+} else {
+    db.ref("bossTimers/" + currentAdminBoss).set({
+        spawn: spawn
+    });
+}
 
         discordAlertsSent[currentAdminBoss] = false;
 
@@ -936,25 +1038,63 @@ if (customBtn) {
 
 
 const resetBtn = document.getElementById("adminResetBtn");
+
 if (resetBtn) {
     resetBtn.onclick = function(){
 
-    if(!currentAdminBoss){
-        alert("No boss selected.");
-        return;
-    }
+        if(!currentAdminBoss){
+            alert("No boss selected.");
+            return;
+        }
 
-    if(!confirm("Reset this timer?")){
-        return;
-    }
+        if(!confirm("Reset this?")){
+            return;
+        }
 
-    db.ref("bossTimers/" + currentAdminBoss).remove();
+        const bossObj = bosses.find(b => b.name === currentAdminBoss);
 
-    triggerTimerAnimation(currentAdminBoss);
-    closeAdminLayer();
-};
+        if(bossObj?.type === "fixed"){
+            db.ref("fixedBossGuilds/" + currentAdminBoss).remove();
+        } else {
+            db.ref("bossTimers/" + currentAdminBoss).remove();
+        }
+
+        triggerTimerAnimation(currentAdminBoss);
+        closeAdminLayer();
+    };
 }
 
+const removeGuildBtn = document.getElementById("adminRemoveGuildBtn");
+
+if(removeGuildBtn){
+    removeGuildBtn.onclick = function(){
+
+        if(!currentAdminBoss){
+            alert("No boss selected.");
+            return;
+        }
+
+        const bossObj = bosses.find(b => b.name === currentAdminBoss);
+
+        if(bossObj?.type === "fixed"){
+            db.ref("fixedBossGuilds/" + currentAdminBoss).remove();
+        } else {
+            db.ref("bossTimers/" + currentAdminBoss + "/guild").remove();
+        }
+
+        // remove badge instantly
+        const card = document.querySelector(`.card[data-name="${currentAdminBoss}"]`);
+        if(card){
+            const nameEl = card.querySelector(".name");
+            const existingGuildTag = nameEl.querySelector(".guild-tag");
+            if(existingGuildTag){
+                existingGuildTag.remove();
+            }
+        }
+
+        closeAdminLayer();
+    };
+}
 console.log("Bosses:", bosses);
 console.log("LootData:", lootData);
 
@@ -964,6 +1104,10 @@ document.addEventListener("click", function(e){
     if(e.target.closest(".loot-slot")){
         return;
     }
+
+    if(e.target.closest(".open-admin")){
+    return;
+}
 
     const clickedCard = e.target.closest(".card");
 
@@ -976,9 +1120,9 @@ document.addEventListener("click", function(e){
 
     });
 
-    if(clickedCard){
-        clickedCard.classList.toggle("show-details");
-    }
+    if(clickedCard && !e.target.closest(".open-admin")){
+    clickedCard.classList.toggle("show-details");
+}
 });
 
 // 🔥 HANDLE SMALL LOOT CLICK (CARD LOOT)
@@ -1248,7 +1392,7 @@ if(boss.name === "Ratan" || boss.name === "Parto" || boss.name === "Nedra"){
 
     cards.forEach(card => {
 
-        const bossName = card.querySelector(".name").innerText.split(" (")[0];
+        const bossName = card.dataset.name;
 
         if(bossName === boss.name){
 
