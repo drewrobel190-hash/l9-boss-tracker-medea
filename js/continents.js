@@ -15,7 +15,7 @@ window.continents = {
       { name: "Lindris", level: "", img: "Maps/Lindris/Lindris.png" },
       { name: "Crescent Lake", level: "Lv. 37-41", img: "Maps/Lindris/Cresendent Lake.png" },
       { name: "Twilight Hill", level: "Lv. 43-48", img: "Maps/Lindris/Twilight Hill.png" },
-      { name: "Dracas Volcano", level: "Lv. 105-115", img: "" },
+      { name: "Volcano Dracas", level: "Lv.105-115", img: "Maps/Lindris/Volcano Dracas.png" },
     ],
 
     Ulan: [
@@ -149,6 +149,15 @@ const mapBossData = {
         { name: "Charging Thardus", type: "Unique Monster", level: "Lv. 53", x: 403, y: 528 },
         { name: "Ancient Thardus", type: "Unique Monster", level: "Lv. 49", x: 622, y: 255 },
         { name:  "Berserk Thardus", type: "Unique Monster", level: "Lv. 54", x: 892, y: 497 },
+    ],
+
+    "Maps/Lindris/Volcano Dracas.png": [
+        { name: "Rakajeth", x: 538, y: 233 }, 
+        { name: "Libitina", x: 357, y: 387 },
+        
+        { name: "Black Field", type: "portal", x: 876, y: 502 },
+        { name: "Remains of Arrogance", type: "portal", x: 607, y: 641 },
+      
     ],
 
     "Maps/Ulan/Ulan .png": [
