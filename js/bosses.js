@@ -179,6 +179,26 @@ image:"Pictures/Benji.png",
 info: "Level 70 Field Boss",
 location: "Corrupted Basin > Benji's Cave"
 },
+
+{ name:"Libitina", type:"fixed",
+schedule:[
+  {day:1,time:"21:00"},
+  {day:6,time:"21:00"}
+],
+image:"Pictures/Libitina.png",
+info: "Level 70 Field Boss",
+location: "Corrupted Basin > Benji's Cave"
+},
+
+{ name:"Rakajeth", type:"fixed",
+schedule:[
+   {day:2,time:"22:00"},
+   {day:0,time:"19:00"}
+],
+image:"Pictures/Rakajeth.png",
+info: "Level 70 Field Boss",
+location: "Corrupted Basin > Benji's Cave"
+},
 {
     
   name: "Icaruthia",
@@ -302,4 +322,10 @@ image:"Pictures/Tumier.png"},
 
 
 ];
-
+ // Sunday 0-6
+  // Monday
+   // Tuesday
+    // Wednesday
+     // Thursday
+      // Friday
+       // Saturday
