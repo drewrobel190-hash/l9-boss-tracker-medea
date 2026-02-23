@@ -966,6 +966,14 @@ death.setHours(parseInt(h), parseInt(m), now.getSeconds(), 0);
         spawn: spawn,
         guild: guild
     });
+    db.ref("bossHistory").push({
+    boss: currentAdminBoss,
+    deathTime: death.getTime(),
+    recordedAt: Date.now(),
+    setBy: currentAdminUser || "Unknown"
+}).then(() => {
+    limitBossHistory();
+});
 
     closeAdminLayer();
 };
