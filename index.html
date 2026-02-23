@@ -35,11 +35,13 @@
     <button id="openMapBtn" class="map-btn">Map</button>
 
    <button id="historyBtn" class="map-btn">Boss TOD</button>
+    
 
 
     <button class="admin-btn" onclick="adminLogin()">
         Admin
     </button>
+    
 </div>
 
 
@@ -47,8 +49,6 @@
   </div>
 
 </header>
-
-
 
 
 <div class="dev-banner">
@@ -113,10 +113,9 @@
     <div class="admin-inputs">
 
       <div class="admin-row">
-        <label>Quick Time:</label>
-        <input type="time" id="adminTime">
-        <button id="adminSetBtn" class="admin-action">Set</button>
-      </div>
+  <label>Quick Time:</label>
+  <input type="time" id="adminTime">
+</div>
 
       <div class="admin-row">
         <label>Custom Date:</label>
@@ -130,6 +129,20 @@
           Reset Timer
         </button>
       </div>
+
+      <div class="admin-row">
+    <label>Guild:</label>
+    <input type="text" id="adminGuild" placeholder="Enter guild name">
+</div>
+<div class="admin-row">
+
+<button id="adminRemoveGuildBtn" class="admin-action admin-reset">
+    Clear Guild
+</button>
+  <button id="adminSetBtn" class="admin-action">
+    Set Edit
+  </button>
+</div>
 
     </div>
 
@@ -205,8 +218,8 @@
         <h2>Boss Death History</h2>
 
         <div class="history-tabs">
-            <button id="tabDeath" class="history-tab active">Boss Death History</button>
-            <button id="tabRecorded" class="history-tab">Timer Set History</button>
+            <button id="tabDeath" class="history-tab active">Bosses Time of Deaths</button>
+            <button id="tabRecorded" class="history-tab">Time Recorded Set</button>
         </div>
 
         <div id="historyList"></div>
@@ -234,6 +247,3 @@
 <script src="js/main.js"></script>
 </body>
 </html>
-
-
-
