@@ -1,3 +1,35 @@
+/*
+███╗   ██╗ ██████╗ ████████╗██╗  ██╗██╗███╗   ██╗ ██████╗ 
+████╗  ██║██╔═══██╗╚══██╔══╝██║  ██║██║████╗  ██║██╔════╝ 
+██╔██╗ ██║██║   ██║   ██║   ███████║██║██╔██╗ ██║██║  ███╗
+██║╚██╗██║██║   ██║   ██║   ██╔══██║██║██║╚██╗██║██║   ██║
+██║ ╚████║╚██████╔╝   ██║   ██║  ██║██║██║ ╚████║╚██████╔╝
+╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+
+████████╗ ██████╗ 
+╚══██╔══╝██╔═══██╗
+   ██║   ██║   ██║
+   ██║   ██║   ██║
+   ██║   ╚██████╔╝
+   ╚═╝    ╚═════╝ 
+
+          
+██╗███╗   ██╗███████╗██████╗ ███████╗ ██████╗████████╗
+██║████╗  ██║██╔════╝██╔══██╗██╔════╝██╔════╝╚══██╔══╝
+██║██╔██╗ ██║███████╗██████╔╝█████╗  ██║        ██║   
+██║██║╚██╗██║╚════██║██╔═══╝ ██╔══╝  ██║        ██║   
+██║██║ ╚████║███████║██║     ███████╗╚██████╗   ██║   
+╚═╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚══════╝ ╚═════╝   ╚═╝   
+
+        
+██╗  ██╗███████╗██████╗ ███████╗
+██║  ██║██╔════╝██╔══██╗██╔════╝
+███████║█████╗  ██████╔╝█████╗  
+██╔══██║██╔══╝  ██╔══██╗██╔══╝  
+██║  ██║███████╗██║  ██║███████╗
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝
+
+*/
 console.log("Bosses:", bosses);
 console.log("Loot:", lootData);
 
@@ -41,7 +73,7 @@ let currentAdminUser = null;
 function resetCardState(card){
     if(!card) return;
 
-    // Close dropdown
+    // Close dropdown i call this 12200 for easy to ctrl find 
     const dropdown = card.querySelector(".boss-dropdown");
     const menuBtn = card.querySelector(".boss-menu");
     const overlay = card.querySelector(".details-overlay");
@@ -116,12 +148,12 @@ if (slot.dataset.stats && slot.dataset.stats.trim() !== "") {
 
 const descEl = document.getElementById("itemDesc");
 
-// 🚫 Hide description for weapons and armors
+//  Hide description for weapons and armors check Peak
 if (isWeapon || isArmor) {
     descEl.innerText = "";
     descEl.style.display = "none";
 }
-// ✅ Show description for mounts/materials only
+// Show description for mounts/materials only check peak fixed errors by me 
 else if (slot.dataset.desc && slot.dataset.desc.trim() !== "") {
     descEl.innerText = slot.dataset.desc;
     descEl.style.display = "block";
@@ -146,7 +178,7 @@ if (slot.dataset.location && slot.dataset.location.trim() !== "") {
         document.getElementById("itemImage").src = img.src;
     }
 
-    // ===== OPTION TABLE (WEAPON + ARMOR ONLY) =====
+    // ===== OPTION TABLE (WEAPON + ARMOR ONLY) Marked na =====
     const optionContainer = document.getElementById("itemOptions");
     optionContainer.innerHTML = "";
 
@@ -195,12 +227,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const mapContent = document.querySelector(".map-content");
 
     const mapInner = document.getElementById("mapInner");
-    // ===== BOSS MARKERS =====
-
-
-// ??
-
-
+    // ===== BOSS MARKERS PARA HINDI MALITO=====
 
     if(!mapContent || !mapInner){
         console.log("Map elements not found");
@@ -281,7 +308,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
     mapContent.addEventListener("click", function(e){
 
-    if(isDragging) return; // prevent drag click
+    if(isDragging) return; // prevent drag click for more focus on the goal ahaha
 
     const rect = mapContent.getBoundingClientRect();
 
@@ -301,7 +328,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
 
 
-/* ===== TIMEZONE LOCAL STORAGE UPGRADE ===== */
+/* ===== TIMEZONE LOCAL STORAGE UPGRADE FIREBASE ===== */
 let selectedOffset = 8;
 const timezoneSelect = document.getElementById("timezoneSelect");
 
@@ -329,7 +356,7 @@ function adminLogin(){
 
     const btn = document.querySelector(".admin-btn");
 
-    // Logout
+    // Logout Button oke?
     if(isAdmin){
         isAdmin = false;
         currentAdminUser = null;
@@ -637,11 +664,11 @@ if(!saved){
         spawn = new Date(saved);
     }
 
-    // ===== GUILD BADGE SYSTEM =====
+    // ===== GUILD BADGE SYSTEM PRE =====
     let nameEl = card.querySelector(".name");
 let existingGuildTag = nameEl.querySelector(".guild-tag");
 
-// Remove old one first
+// Fucking hustle to fix
 if(existingGuildTag){
     existingGuildTag.remove();
 }
@@ -853,7 +880,7 @@ function triggerTimerAnimation(bossName){
 let currentAdminBoss = null;
 let currentAdminHours = null;
 
-//errors when clicking set timer without selecting time, and when clicking custom without selecting date or time. also when clicking reset without an active boss. should add checks to prevent these. also maybe add confirmation for reset since it can be accidental.
+//errors fixed no more errors 1day fixed by teshi
 function openAdminLayer(name, hours){
 
     currentAdminBoss = name;
@@ -866,7 +893,7 @@ if(adminImg && bossObj?.image){
     adminImg.src = bossObj.image;
 }
 
-    // 🔥 Select actual rows using IDs inside them
+    //  Select actual rows using IDs inside them
     const quickTimeRow = document.getElementById("adminTime").closest(".admin-row");
     const customRow = document.getElementById("adminDate").closest(".admin-row");
 
@@ -934,7 +961,7 @@ if (setBtn) {
 
         const bossObj = bosses.find(b => b.name === currentAdminBoss);
 
-        // 🟣 FIXED BOSS → ONLY GUILD
+        // FIXED BOSS → ONLY GUILD OKAY
         if(bossObj?.type === "fixed"){
 
             const guild = document.getElementById("adminGuild").value || "";
@@ -944,7 +971,7 @@ if (setBtn) {
             return;
         }
 
-        // 🔵 INTERVAL BOSS
+        //  INTERVAL BOSS LIKE FOR BOSSES TIME SET
         const input = document.getElementById("adminTime").value;
         const guild = document.getElementById("adminGuild").value || "";
 
@@ -980,7 +1007,7 @@ if (setBtn) {
 
         } 
         else {
-            // Only update guild
+            // Only update guild oke
             db.ref("bossTimers/" + currentAdminBoss + "/guild").set(guild);
         }
 
@@ -992,8 +1019,9 @@ const admins = [
     { username: "Tesukamei", password: "190190" },
     { username: "Raitoo", password: "180180" },
     { username: "Aetheris", password: "170170" },
-    { username: "RuiJinguBang", password: "160160"},
-    { username: "StormCarbz", password: "150150" }
+    { username: "RuiJinguBang", password: "160160" },
+    { username: "StormCarbz", password: "150150" },
+    { username: "Serie", password: "140140" }
 ]; 
 
 const customBtn = document.getElementById("adminCustomBtn");
@@ -1130,7 +1158,7 @@ document.addEventListener("click", function(e){
 
         if(card !== clickedCard){
             card.classList.remove("show-details");
-            resetCardState(card);   // 👈 THIS IS THE MAGIC
+            resetCardState(card);   // THIS IS THE MAGIC BY VS CODE AI DAMN
         }
 
     });
@@ -1140,7 +1168,7 @@ document.addEventListener("click", function(e){
 }
 });
 
-// 🔥 HANDLE SMALL LOOT CLICK (CARD LOOT)
+// HANDLE SMALL LOOT CLICK (CARD LOOT)
 document.addEventListener("click", function(e){
 
     const slot = e.target.closest(".loot-slot");
@@ -1250,7 +1278,7 @@ function closeAllLoot(event){
     }
 }
 
-// 🔥 CLOSE ITEM POPUP WHEN CLICKING BACKGROUND
+// CLOSE ITEM POPUP WHEN CLICKING BACKGROUND
 document.getElementById("itemPopup").addEventListener("click", function(e){
     if(e.target.id === "itemPopup"){
         this.classList.remove("active");
@@ -1349,7 +1377,7 @@ marker.style.height = "40px";
 marker.style.transform = "translate(-50%, -50%)";
 marker.style.cursor = "pointer";
 marker.style.background = "transparent";
-// 🔥 HOVER TOOLTIP
+// HOVER TOOLTIP
 marker.addEventListener("mouseenter", function(){
 
     const tooltip = document.createElement("div");
@@ -1377,7 +1405,7 @@ marker.addEventListener("mouseleave", function(){
 
  marker.onclick = () => {
 
-    // 🔥 If world boss → open world boss panel immediately
+    //  If world boss → open world boss panel immediately
 if(boss.name === "Ratan" || boss.name === "Parto" || boss.name === "Nedra"){
 
     mapOverlay.classList.remove("active");
@@ -1385,7 +1413,7 @@ if(boss.name === "Ratan" || boss.name === "Parto" || boss.name === "Nedra"){
 
     worldOverlay.classList.add("active");
 
-    // 🔥 highlight selected world boss
+    //  highlight selected world boss
     document.querySelectorAll(".world-boss-card").forEach(card => {
         card.classList.remove("selected");
     });
@@ -1430,10 +1458,10 @@ if(boss.name === "Ratan" || boss.name === "Parto" || boss.name === "Nedra"){
         }
     });
 
-    // 🔥 If NOT a main boss → show simple popup
+    // If NOT a main boss → show simple popup set by me fixed errors
    if(!found){
 
-    // 🔥 If world boss → open world boss panel
+    // If world boss → open world boss panel gets?
    
 
     // Normal popup for other stuff
@@ -1510,7 +1538,7 @@ function loadContinent(continentKey){
             renderBossMarkers(zone.img);
 
 
-            // Fade back in
+            // Fade back in 
             mapImage.classList.remove("map-animate");
         }, 200);
     }
@@ -1522,8 +1550,8 @@ function loadContinent(continentKey){
 
 
 
-        // Toggle open/close
-        // Toggle open/close
+        
+        // Toggle open/close sumasara kapag clinick
 titleDiv.onclick = () => {
 
     zoneContainer.classList.toggle("open");
@@ -1538,7 +1566,7 @@ titleDiv.onclick = () => {
 
     } else {
 
-        // reset delay when closing
+        // reset delay when closing okay?
         const zones = zoneContainer.querySelectorAll(".sub-region");
         zones.forEach(zone => {
             zone.style.transitionDelay = "0s";
@@ -1576,10 +1604,10 @@ const worldOverlay = document.getElementById("worldBossOverlay");
 
 worldBossBtn.onclick = () => {
 
-    // ✅ Close Map if open
+    // Close Map if open
     mapOverlay.classList.remove("active");
 
-    // ✅ Open World Boss
+    // Open World Boss code 14444 easy to ctrl F
     worldOverlay.classList.add("active");
 
     document.body.style.overflow = "hidden";
@@ -1682,7 +1710,7 @@ div.innerHTML = `
             });
         }
 
-        // 🔥 Default tab = Death Time
+        
         renderList("death");
 
         deathTab.onclick = function(){
@@ -1716,7 +1744,7 @@ function limitBossHistory(){
 
         if(entries.length <= 25) return;
 
-        // Sort oldest first
+        
         entries.sort((a,b) => 
             a[1].recordedAt - b[1].recordedAt
         );
@@ -1739,6 +1767,4 @@ function limitBossHistory(){
 createWorldBossCard("Ratan", 60, "Pictures/World boss/Ratan.png", "Tomb of Time");
 createWorldBossCard("Parto", 85, "Pictures/World boss/Parto.png", "Magic Puppet's Yearning");
 createWorldBossCard("Nedra", 105, "Pictures/World boss/Nedra.png", "Bloodsoaked Plateau");
-
-
 
