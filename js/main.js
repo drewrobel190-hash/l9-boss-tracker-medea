@@ -356,7 +356,7 @@ function adminLogin(){
 
     const btn = document.querySelector(".admin-btn");
 
-    // Logout Button oke?
+    // Logout
     if(isAdmin){
         isAdmin = false;
         currentAdminUser = null;
@@ -372,20 +372,28 @@ function adminLogin(){
     const password = prompt("Enter Password:");
     if(!password) return;
 
-    const match = admins.find(admin =>
-        admin.username === username &&
-        admin.password === password
-    );
+    // Firebase check instead of local array
+    db.ref("admins/" + username).once("value").then(snapshot => {
 
-    if(match){
-        isAdmin = true;
-        currentAdminUser = match.username;
-        btn.classList.add("active-admin");
-        alert("Welcome " + match.username);
-        applyAdminMode();
-    } else {
-        alert("Invalid credentials");
-    }
+        if(!snapshot.exists()){
+            alert("Invalid username");
+            return;
+        }
+
+        const data = snapshot.val();
+
+        if(data.password === password){
+            isAdmin = true;
+            currentAdminUser = username;
+            btn.classList.add("active-admin");
+            alert("Welcome " + username);
+            applyAdminMode();
+        } else {
+            alert("Wrong password");
+        }
+
+    });
+
 }
 
 
@@ -1015,14 +1023,6 @@ if (setBtn) {
     };
 }
 
-const admins = [
-    { username: "Tesukamei", password: "190190" },
-    { username: "Raitoo", password: "180180" },
-    { username: "Aetheris", password: "170170" },
-    { username: "RuiJinguBang", password: "160160" },
-    { username: "StormCarbz", password: "150150" },
-    { username: "Serie", password: "140140" }
-]; 
 
 const customBtn = document.getElementById("adminCustomBtn");
 
