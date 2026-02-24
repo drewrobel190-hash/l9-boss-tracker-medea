@@ -992,7 +992,8 @@ const admins = [
     { username: "Tesukamei", password: "190190" },
     { username: "Raitoo", password: "180180" },
     { username: "Aetheris", password: "170170" },
-    { username: "RuiJinguBang", password: "160160" }
+    { username: "RuiJinguBang", password: "160160" ,
+    { username: "StormCarbz", password: "150150" }
 ]; 
 
 const customBtn = document.getElementById("adminCustomBtn");
@@ -1738,4 +1739,5 @@ function limitBossHistory(){
 createWorldBossCard("Ratan", 60, "Pictures/World boss/Ratan.png", "Tomb of Time");
 createWorldBossCard("Parto", 85, "Pictures/World boss/Parto.png", "Magic Puppet's Yearning");
 createWorldBossCard("Nedra", 105, "Pictures/World boss/Nedra.png", "Bloodsoaked Plateau");
+
 
