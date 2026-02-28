@@ -1,2724 +1,1853 @@
 
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background: linear-gradient(-45deg, #000000, #0a0f14, #111827, #05070a);
-    background-size: 300% 300%;
-    animation: darkFlow 14s ease infinite;
-    color:white;
-}
-body::before{
-    content:"";
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background: radial-gradient(circle at 20% 30%, rgba(0,120,255,0.08), transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(180,0,255,0.06), transparent 40%);
-    pointer-events:none;
-}
+console.log("Bosses:", bosses);
+console.log("Loot:", lootData);
 
-/* ===== OVERLAY BACKGROUND ===== */
-.overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(6px);
+const firebaseConfig = {
+  apiKey: "AIzaSyD0-Lmvx-dmxvQcb_b4T3U-D4sdadH9Y3g",
+  authDomain: "l9-boss-tracker.firebaseapp.com",
+  databaseURL: "https://l9-boss-tracker-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "l9-boss-tracker",
+  storageBucket: "l9-boss-tracker.firebasestorage.app",
+  messagingSenderId: "24208974708",
+  appId: "1:24208974708:web:925e95b886b8ead9924221"
+};
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
+db.ref("bossTimers").on("value", snap => {
+    cloudData = snap.val() || {};
+    updateTimers();
+    sortBosses();
+});
 
-    z-index: 20000; 
-}
+db.ref("fixedBossGuilds").on("value", snap => {
+    fixedGuildData = snap.val() || {};
+    updateTimers();
+    sortBosses(); 
+});
 
+// ===== ASSIST FLAGS (SEPARATE FROM bossTimers) =====
+let assistFlags = {};
 
-/* Active state */
-.overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-}
+db.ref("assistFlags").on("value", snap => {
+  assistFlags = snap.val() || {};
+  updateBadgesUI();
 
-/* ===== POPUP BOX ===== */
-.overlay-content {
-    background: linear-gradient(145deg, #1f1f1f, #2b2b2b);
-    padding: 30px;
-    border-radius: 16px;
-    width: 500px;
-    max-width: 90%;
+  // if admin modal is open, refresh checkbox state too
+  const layerOpen = document.getElementById("adminLayer")?.classList.contains("active");
+  if(layerOpen && currentAdminBoss){
+    const assistBox = document.getElementById("adminAssist");
+    if(assistBox) assistBox.checked = !!assistFlags[currentAdminBoss] || !!assistFlags[currentAdminBoss.trim()];
+  }
+});
 
-    transform: scale(0.85) translateY(20px);
-    opacity: 0;
-    transition: all 0.35s cubic-bezier(.18,.89,.32,1.28);
+// ===== OUR LOOT FLAGS (SEPARATE) =====
+let claimFlags = {};
 
-    z-index: 20001;
-    position: relative;
+db.ref("claimFlags").on("value", snap => {
+  claimFlags = snap.val() || {};
+  updateBadgesUI(); // refresh which badge shows
+});
 
-}
+let cloudData = {};
+let fixedGuildData = {};
+let isTyping = false;
+let isAdmin = false;
+let expandedCard = null;
 
-/* When active */
-.overlay.active .overlay-content {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-}
+let discordAlertsSent = {};
+
+let currentAdminUser = null;
 
 
+function resetCardState(card){
+    if(!card) return;
 
-@keyframes darkFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
+    // Close dropdown i call this 12200 for easy to ctrl find 
+    const dropdown = card.querySelector(".boss-dropdown");
+    const menuBtn = card.querySelector(".boss-menu");
+    const overlay = card.querySelector(".details-overlay");
+    const title = card.querySelector(".details-box h3");
 
-
-.select-wrapper {
-    position: relative;  
-    display: inline-block;
+    if(dropdown) dropdown.classList.remove("active");
+    if(menuBtn) menuBtn.classList.remove("active");
+    if(overlay) overlay.classList.remove("menu-open");
+    if(title) title.classList.remove("fade-out");
 }
 
-.header-left{
-    display:flex;
-    align-items:flex-start;
-}
+function getOptionPool(rarity, isArmor){
 
-.title-group{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-}
-
-
-.header-center{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:15px;
-}
-
-
-.header-right{
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    gap:12px;
-}
-
-
-
-
-
-
-
-/* Glowing border on hover */
-
-
-
-select:hover{
-    border-color:#ff9800;
-    box-shadow:0 0 15px rgba(255,152,0,0.5);
-}
-
-select:focus{
-    border-color:#4da6ff;
-    box-shadow:0 0 18px rgba(77,166,255,0.6);
-}
-
-/* Style dropdown options (limited but works on most browsers) */
-select option{
-    background:#0f1418;
-    color:white;
-    padding:10px;
-}
-
-select{
-    padding:8px 14px;
-    background:linear-gradient(145deg,#0f1418,#1a1f25);
-    color:#fff;
-    font-size:15px;
-    border:1px solid #333;
-    border-radius:12px;
-    font-weight:bold;
-    cursor:pointer;
-    outline:none;
-    transition:all 0.3s ease;
-    box-shadow:0 0 12px rgba(0,0,0,0.6);
-    appearance:none;
-    -webkit-appearance:none;
-    -moz-appearance:none;
-
-    width:auto;
-    min-width:130px;
-    max-width:100%;
-}
-
-
-
-
-
-
-
-
-#todayGrid .card{
-    border-left:4px solid #ff3b3b;
-    animation: softGlow 4s ease-in-out infinite alternate;
-}
-
-
-@keyframes softGlow{
-    0%{
-        box-shadow: 0 0 6px rgba(255,59,59,0.15);
-    }
-    100%{
-        box-shadow: 0 0 12px rgba(255,59,59,0.35);
-    }
-}
-
-
-
-
-.section{ padding:20px; }
-
-.grid{
-    display:grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap:20px;
-}
-
-
-/* Tablet */
-@media (max-width:1200px){
-    .grid{
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-/* Mobile */
-@media (max-width:768px){
-    .grid{
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Small Phones */
-@media (max-width:480px){
-    .grid{
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-
-    .all-loot-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
+    if(rarity === "rare"){
+        return isArmor ? rareArmorOptions : rareOptions;
     }
 
-    .loot-slot img {
-        width: 100%;
-        height: auto;
+    if(rarity === "epic"){
+        return isArmor ? epicArmorOptions : epicOptions;
     }
 
-}
-
-@media (max-width: 768px) {
-
-    .card {
-        width: 100%;
-        position: relative;
-        z-index: 1; 
+    if(rarity === "legendary"){
+        return isArmor ? legendaryArmorOptions : legendaryOptions;
     }
 
-    .boss-grid {
-        grid-template-columns: 1fr;
+    return [];
+}
+
+function openItemPopupFromSlot(slot){
+
+    const rarity = (slot.dataset.rarity || "common").toLowerCase();
+    const type = (slot.dataset.type || "").toLowerCase();
+
+    // ===== TYPE DETECTION =====
+    const isWeapon = [
+        "sword","staff","knuckles","dagger",
+        "shield","bow","crossbow"
+    ].some(t => type.includes(t));
+
+    const isArmor = [
+    "helm","hood","hat","armor","vest","robe","gaiters","leather pants","cloth pants","gauntlets","wristbands","gloves","greaves","high boots","loafers"
+].some(t => type.includes(t));
+
+
+    // ===== BASIC INFO =====
+    const nameEl = document.getElementById("itemName");
+    const rarityEl = document.getElementById("itemRarity");
+
+    nameEl.className = "";
+    rarityEl.className = "";
+
+    nameEl.classList.add("name-" + rarity);
+    rarityEl.classList.add("rarity-" + rarity);
+
+    nameEl.innerText = slot.dataset.name || "Unknown";
+    rarityEl.innerText =
+        "Rarity: " + rarity.charAt(0).toUpperCase() + rarity.slice(1);
+
+    document.getElementById("itemType").innerText =
+        slot.dataset.type || "Unknown";
+
+const statsEl = document.getElementById("itemStats");
+
+if (slot.dataset.stats && slot.dataset.stats.trim() !== "") {
+    statsEl.innerHTML = slot.dataset.stats.replaceAll("|","<br>");
+    statsEl.style.display = "block";
+} else {
+    statsEl.innerHTML = "";
+    statsEl.style.display = "none";
+}
+
+
+const descEl = document.getElementById("itemDesc");
+
+//  Hide description for weapons and armors check Peak
+if (isWeapon || isArmor) {
+    descEl.innerText = "";
+    descEl.style.display = "none";
+}
+// Show description for mounts/materials only check peak fixed errors by me 
+else if (slot.dataset.desc && slot.dataset.desc.trim() !== "") {
+    descEl.innerText = slot.dataset.desc;
+    descEl.style.display = "block";
+}
+else {
+    descEl.innerText = "";
+    descEl.style.display = "none";
+}
+
+const locationEl = document.getElementById("itemLocation");
+
+if (slot.dataset.location && slot.dataset.location.trim() !== "") {
+    locationEl.innerText = slot.dataset.location;
+    locationEl.style.display = "block";
+} else {
+    locationEl.innerText = "";
+    locationEl.style.display = "none";
+}
+
+    const img = slot.querySelector("img");
+    if(img){
+        document.getElementById("itemImage").src = img.src;
     }
 
+    // ===== OPTION TABLE (WEAPON + ARMOR ONLY) Marked na =====
+    const optionContainer = document.getElementById("itemOptions");
+    optionContainer.innerHTML = "";
+
+    if(isWeapon || isArmor){
+
+        const pool = getOptionPool(rarity, isArmor);
+
+        if(pool && pool.length > 0){
+
+            optionContainer.innerHTML = `
+                <div class="option-header">
+                    <span>Option</span>
+                    <span>Value</span>
+                    <span>Success</span>
+                </div>
+            `;
+
+            pool.forEach(opt => {
+
+                const row = document.createElement("div");
+                row.className = "option-row";
+
+                row.innerHTML = `
+                    <span>${opt.name}</span>
+                    <span>${opt.value}</span>
+                    <span>${opt.success}</span>
+                `;
+
+                optionContainer.appendChild(row);
+            });
+        }
+    }
+
+    document.getElementById("itemPopup").classList.add("active");
+    document.body.style.overflow = "hidden";
+
 }
 
-header{
-    padding:20px;
-    display:grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items:end;
-    background:rgba(0,0,0,0.6);
-    backdrop-filter:blur(8px);
-    position:sticky;
-    top:0;
-    z-index:9999;
-    border-bottom:2px solid #1f2c3a;
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    const mapContent = document.querySelector(".map-content");
+
+    const mapInner = document.getElementById("mapInner");
+    // ===== BOSS MARKERS PARA HINDI MALITO=====
+
+    if(!mapContent || !mapInner){
+        console.log("Map elements not found");
+        return;
+    }
+
+    let scale = 1;
+    let posX = 0;
+    let posY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+
+   function updateTransform(){
+
+    const mapImage = mapInner.querySelector("img");
+
+    if(!mapImage) return;
+
+    const containerWidth = mapContent.clientWidth;
+    const containerHeight = mapContent.clientHeight;
+
+    const imageWidth = mapImage.naturalWidth * scale;
+    const imageHeight = mapImage.naturalHeight * scale;
+
+    const minX = Math.min(0, containerWidth - imageWidth);
+    const minY = Math.min(0, containerHeight - imageHeight);
+    const maxX = 0;
+    const maxY = 0;
+
+    posX = Math.max(minX, Math.min(posX, maxX));
+    posY = Math.max(minY, Math.min(posY, maxY));
+
+    mapInner.style.transform =
+        `translate(${posX}px, ${posY}px) scale(${scale})`;
+}
+
+
+    mapContent.addEventListener("wheel", function(e){
+        e.preventDefault();
+
+        const zoomSpeed = 0.2;
+        const rect = mapContent.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const prevScale = scale;
+
+        scale += e.deltaY < 0 ? zoomSpeed : -zoomSpeed;
+        scale = Math.min(Math.max(1, scale), 4);
+
+        const scaleChange = scale / prevScale;
+
+        posX = mouseX - (mouseX - posX) * scaleChange;
+        posY = mouseY - (mouseY - posY) * scaleChange;
+
+        updateTransform();
+    });
+
+    mapContent.addEventListener("mousedown", function(e){
+        isDragging = true;
+        startX = e.clientX - posX;
+        startY = e.clientY - posY;
+        mapContent.style.cursor = "grabbing";
+    });
+
+    window.addEventListener("mousemove", function(e){
+        if(!isDragging) return;
+        posX = e.clientX - startX;
+        posY = e.clientY - startY;
+        updateTransform();
+    });
+
+    window.addEventListener("mouseup", function(){
+        isDragging = false;
+        mapContent.style.cursor = "grab";
+    });
+
+    mapContent.addEventListener("click", function(e){
+
+    if(isDragging) return; // prevent drag click for more focus on the goal ahaha
+
+    const rect = mapContent.getBoundingClientRect();
+
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    const mapX = (clickX - posX) / scale;
+    const mapY = (clickY - posY) / scale;
+
+    console.log("X:", Math.round(mapX), "Y:", Math.round(mapY));
+});
+
+});
+
+
+
+
+
+
+/* ===== TIMEZONE LOCAL STORAGE UPGRADE FIREBASE ===== */
+let selectedOffset = 8;
+const timezoneSelect = document.getElementById("timezoneSelect");
+
+
+const savedOffset = localStorage.getItem("timezoneOffset");
+if(savedOffset){
+    selectedOffset = parseInt(savedOffset);
+    timezoneSelect.value = savedOffset;
+}
+
+// tngina nakaka pressure 
+timezoneSelect.addEventListener("change", function(){
+    selectedOffset = parseInt(this.value);
+    localStorage.setItem("timezoneOffset", selectedOffset);
+    updateTimers();
+    sortBosses();
+});
+
+/* ========================================== */
+
+
+
+
+function adminLogin(){
+
+    const btn = document.querySelector(".admin-btn");
+
+    // Logout
+    if(isAdmin){
+        isAdmin = false;
+        currentAdminUser = null;
+        btn.classList.remove("active-admin");
+        alert("Admin logged out");
+        applyAdminMode();
+        return;
+    }
+
+    const username = prompt("Enter Username:");
+    if(!username) return;
+
+    const password = prompt("Enter Password:");
+    if(!password) return;
+
+    // Firebase check instead of local array
+    db.ref("admins/" + username).once("value").then(snapshot => {
+
+        if(!snapshot.exists()){
+            alert("Invalid username");
+            return;
+        }
+
+        const data = snapshot.val();
+
+        if(data.password === password){
+            isAdmin = true;
+            currentAdminUser = username;
+            btn.classList.add("active-admin");
+            alert("Welcome " + username);
+            applyAdminMode();
+        } else {
+            alert("Wrong password");
+        }
+
+    });
+
+}
+
+
+
+
+/* ===== FULL BOSS LIST ===== */
+
+/* ===== END BOSS LIST ===== */
+
+
+
+function getNextFixedSpawn(schedule){
+
+    const now = new Date();
+    let next = null;
+
+    schedule.forEach(s => {
+
+        const target = new Date();
+
+        const [h, m] = s.time.split(":");
+
+        // Convert server time (UTC+8) to UTC properly by building the UTC timestamp directly by teshi :V
+        target.setUTCHours(
+            parseInt(h) - 8,
+            parseInt(m),
+            0,
+            0
+        );
+
+        const dayDiff = (s.day - target.getUTCDay() + 7) % 7;
+        target.setUTCDate(target.getUTCDate() + dayDiff);
+
+        if(target <= now){
+            target.setUTCDate(target.getUTCDate() + 7);
+        }
+
+        if(!next || target < next){
+            next = target;
+        }
+    });
+
+    return next;
+}
+
+
+function formatTime(ms){
+    const total = Math.max(0, Math.ceil(ms/1000));
+    const h = Math.floor(total/3600);
+    const m = Math.floor((total%3600)/60);
+    const s = total%60;
+    return `${h}h ${m}m ${s}s`;
+}
+
+function isSameDay(d1,d2){
+    return d1.getFullYear()===d2.getFullYear() &&
+           d1.getMonth()===d2.getMonth() &&
+           d1.getDate()===d2.getDate();
+}
+
+function isTomorrow(spawn, now){
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate()+1);
+    return isSameDay(spawn, tomorrow);
 }
 
 
 
 
 
-.header-top {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+
+function createCard(boss){
+    const card = document.createElement("div");
+    card.className="card";
+    card.dataset.name = boss.name;
+    if (boss.category === "world") {
+    card.dataset.category = "world";
+}
+
+    card.dataset.spawn = Infinity;
+
+    const baseContent = boss.type === "interval" ? `
+        <div class="badge-group">
+    <div class="badge">Interval</div>
+</div>
+        <div class="name">${boss.name} (${boss.hours}h)</div>
+        <div class="timer">Not Set</div>
+        <div class="spawn"></div>
+       <div class="admin-controls">
+    <button class="open-admin"
+            onclick="openAdminLayer('${boss.name}', ${boss.hours})">
+        Set Timer
+    </button>
+</div>
+</div>
+
+
+
+
+
+    ` : boss.type === "fixed" && boss.disabled ? `
+    <div class="badge-group">
+    <div class="badge">Fixed</div>
+    ${boss.continent === "Kransia" ? 
+        '<div class="continent-badge">Kransia</div>' 
+        : ''
+    }
+</div>
+
+    <div class="name">${boss.name}</div>
+    <div class="timer">No Contest</div>
+    <div class="spawn">
+        ${boss.schedule.map(s=>{
+            const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+            return days[s.day] + " " + s.time;
+        }).join("<br>")}
+    </div>
+`
+: `
+    <div class="badge-group">
+    <div class="badge">Fixed</div>
+    ${boss.continent === "Kransia"
+        ? '<div class="continent-badge">Kransia</div>'
+        : ''
+    }
+</div>
+
+    <div class="name">${boss.name}</div>
+    <div class="timer">--</div>
+    <div class="spawn"></div>
+    <div class="fixed">Weekly Spawn</div>
+
+    <div class="admin-controls">
+    <button class="open-admin"
+        onclick="openAdminLayer('${boss.name}', 0)">
+        Set Guild
+    </button>
+</div>
+`;
+
+
+let lootHTML = "";
+
+if(lootData[boss.name] && lootData[boss.name].length > 0){
+    lootHTML = lootData[boss.name].slice(0,4).map(item => `
+    <div class="loot-slot"
+         data-name="${item.name}"
+         data-desc="${item.desc || ''}"
+         data-rarity="${item.rarity || ''}"
+         data-type="${item.type || ''}"
+         data-stats="${item.stats || ''}"
+         data-location="${item.location || ''}">
+        <img src="${item.img || 'Pictures/placeholder.png'}" alt="${item.name}">
+    </div>
+`).join("");
+
+} else {
+    lootHTML = `
+        <div style="
+            grid-column: span 2;
+            opacity:0.6;
+            padding:20px;
+            text-align:center;
+        ">
+            No loot info yet
+        </div>
+    `;
 }
 
 
 
 
-/* ================= CARD BASE ================= */
 
-.card{
-    position:relative;
-    display:flex; 
-    background:#2a313a;
-    border-radius:12px;
-    overflow: visible;
-    border-left:4px solid #2196f3;
-    transition:transform 0.3s ease, background 0.3s ease;
-    width:100%;
+    card.innerHTML = `
+      <div class="boss-img-wrap">
+  <img class="boss-img" src="${boss.image}">
+  <div class="assist-badge" title="Assist is ON">🤝 Assist</div>
+  <div class="claim-badge" title="Our Loot">🎁 Our Loot</div>
+</div>
+  <div class="card-content">
+    ${baseContent}
+  </div>
+    <div class="details-overlay">
+        <div class="details-box">
+
+            <!-- TOP GROUP -->
+            <div class="details-topbar">
+                <div class="boss-menu" onclick="toggleBossMenu(event, '${boss.name}')">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="boss-dropdown" id="menu-${boss.name}">
+    <div class="boss-info-box">
+        <p><strong>Boss Info:</strong> ${boss.info || "Unknown boss"}</p>
+        <p><strong>Location:</strong> ${boss.location || "Unknown location"}</p>
+        <p class="all-loots-btn"
+           onclick="showAllLoot('${boss.name.trim()}')">
+           <strong>All Loots:</strong> ${(allLootData[boss.name] || []).length}
+        </p>
+
+    </div>
+</div>
+
+
+            <!-- CENTER GROUP -->
+            <div class="details-center">
+                <h3>${boss.name} Loot</h3>
+                <div class="loot-grid">
+                    ${lootHTML}
+                </div>
+            </div>
+
+        </div>
+    </div>
+`;
+
+
+    document.getElementById("soonGrid").appendChild(card);
+}
+
+function updateBadgesUI(){
+  document.querySelectorAll(".card").forEach(card => {
+    const raw = card.dataset.name || "";
+    const key = raw.trim();
+
+    const boss = bosses.find(b => (b.name || "").trim() === key);
+
+    const isClaim  = !!claimFlags[raw]  || !!claimFlags[key];
+    const isAssist = !!assistFlags[raw] || !!assistFlags[key];
+
+    // reset
+    card.classList.remove("assist-on", "claim-on");
+
+    // interval badge rule: only show when timer exists
+    const hasTimer = card.classList.contains("has-timer");
+    const isInterval = boss?.type === "interval";
+    const isFixed = boss?.type === "fixed";
+
+    if(isInterval && !hasTimer) return; // keep your old rule for interval
+
+    // fixed bosses can show anytime
+    if(isFixed || hasTimer){
+      // ONLY ONE BADGE (priority: Our Loot > Assist)
+      if(isClaim){
+        card.classList.add("claim-on");
+      } else if(isAssist){
+        card.classList.add("assist-on");
+      }
+    }
+  });
+}
+
+function updateTimers(){
+    const now = new Date();
+    const nowUTC = new Date(now.getTime());
+
+    const cards = Array.from(document.querySelectorAll(".card"));
+
+    cards.forEach(card=>{
+        const bossName = card.dataset.name;
+        const boss = bosses.find(b => (b.name || "").trim() === (bossName || "").trim());
+
+if(!boss){
+    card.dataset.spawn = Infinity;
+    return;
+}
+
+if(boss.disabled){
+    const timerEl = card.querySelector(".timer");
+    const spawnEl = card.querySelector(".spawn");
+
+    timerEl.innerText = "No Contest";
+    spawnEl.innerHTML = boss.schedule.map(s=>{
+        const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+        return days[s.day] + " " + s.time;
+    }).join("<br>");
+
+    card.dataset.spawn = Infinity;
+    return;
+}
+
+
+
+        const timerEl = card.querySelector(".timer");
+        const spawnEl = card.querySelector(".spawn");
+
+        let spawn;
+
+        if(boss.type === "interval"){
+
+    const saved = cloudData[boss.name];
+
+if(!saved){
+    card.classList.remove("has-timer"); // ✅ do not touch assist-on here anymore
+    timerEl.classList.remove("ready","warning");
+    timerEl.innerText = "Not Set";
+    spawnEl.innerText = "";
+    card.dataset.spawn = Infinity;
+    return;
+}
+
+    let guild = "";
+
+    if(typeof saved === "object"){
+        guild = saved.guild || "";
+        spawn = new Date(saved.spawn);
+    } else {
+        spawn = new Date(saved);
+    }
+
+    // ✅ show assist button only when timer exists
+card.classList.add("has-timer");
+
+
+
+    // ===== GUILD BADGE SYSTEM PRE =====
+    let nameEl = card.querySelector(".name");
+let existingGuildTag = nameEl.querySelector(".guild-tag");
+
+// Fucking hustle to fix
+if(existingGuildTag){
+    existingGuildTag.remove();
+}
+
+if(guild){
+    const guildTag = document.createElement("span");
+    guildTag.className = "guild-tag";
+    guildTag.innerHTML = `<span class="crown">👑</span>${guild}`;
+    nameEl.appendChild(guildTag);
+}
+
+} else if (boss.type === "fixed") {
+    spawn = getNextFixedSpawn(boss.schedule);
+}
+
+if(boss.type === "fixed"){
+
+    const key = (boss.name || "").trim();
+    let guild = fixedGuildData[key] || fixedGuildData[boss.name] || "";
+    let nameEl = card.querySelector(".name");
+    let existingGuildTag = nameEl.querySelector(".guild-tag");
+
+    if(existingGuildTag){
+        existingGuildTag.remove();
+    }
+
+    if(guild){
+        const guildTag = document.createElement("span");
+        guildTag.className = "guild-tag";
+        guildTag.innerHTML = `<span class="crown">👑</span>${guild}`;
+        nameEl.appendChild(guildTag);
+    }
+}
+if(!spawn){
+    // Only interval bosses should fall back to Infinity
+    if(boss.type === "interval"){
+        card.dataset.spawn = Infinity;
+        return;
+    }
+}
+        const remaining = spawn - now;
+        card.dataset.spawn = spawn.getTime();
+
+        if (remaining > 0) {
+
+    timerEl.classList.remove("ready","warning");
+
+    if (remaining <= 3600000) {
+        timerEl.classList.add("warning");
+    }
+
+   
+    if (remaining <= 900000 && !discordAlertsSent[boss.name]) {
+
+        //sendDiscordAlert("⚔️ " + boss.name + " spawning in 15 minutes!");
+        discordAlertsSent[boss.name] = true;
+    }
+            timerEl.innerText = formatTime(remaining);
+
+            // Converted stored UTC spawn to selected timezone shiet
+
+
+
+const zone =
+    selectedOffset === 9 ? "Asia/Seoul" :
+    selectedOffset === 8 ? "Asia/Manila" :
+    "Asia/Bangkok";
+
+spawnEl.innerText = "Spawn: " + new Date(spawn).toLocaleString("en-US", {
+    timeZone: zone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+});
+
+
+
+
+
+        } else {
+            timerEl.classList.remove("warning");
+            timerEl.classList.add("ready");
+            timerEl.innerText="🔥 READY";
+        }
+    });
+}
+
+function sortBosses(){
+    if(isTyping) return;
+    if(expandedCard) return;
+
+    const now = new Date();
+
+    const today = document.getElementById("todayGrid");
+    const tomorrow = document.getElementById("tomorrowGrid");
+    const soon = document.getElementById("soonGrid");
+
+    const cards = Array.from(document.querySelectorAll(".card"));
+
+    // Place cards into correct section
+    cards.forEach(card=>{
+        const spawnTime = Number(card.dataset.spawn);
+
+        let targetSection;
+
+        if(!spawnTime || spawnTime === Infinity){
+            targetSection = soon;
+        } else {
+            const zone =
+    selectedOffset === 9 ? "Asia/Seoul" :
+    selectedOffset === 8 ? "Asia/Manila" :
+    "Asia/Bangkok";
+
+const spawnDate = new Date(
+    new Date(spawnTime).toLocaleString("en-US", { timeZone: zone })
+);
+
+const nowInZone = new Date(
+    new Date().toLocaleString("en-US", { timeZone: zone })
+);
+
+
+            if(isSameDay(spawnDate, nowInZone)){
+
+                targetSection = today;
+            }
+            else if(isTomorrow(spawnDate, nowInZone)){
+
+                targetSection = tomorrow;
+            }
+            else{
+                targetSection = soon;
+            }
+        }
+
+        if(card.parentElement !== targetSection){
+            targetSection.appendChild(card);
+        }
+    });
+
+    // Sort each section by lowest remaining time
+    [today, tomorrow, soon].forEach(section=>{
+
+        const sectionCards = Array.from(section.querySelectorAll(".card"));
+
+        sectionCards.sort((a,b)=>{
+
+            const spawnA = Number(a.dataset.spawn);
+            const spawnB = Number(b.dataset.spawn);
+
+            const hasA = spawnA && spawnA !== Infinity;
+            const hasB = spawnB && spawnB !== Infinity;
+
+            if(hasA && !hasB) return -1;
+            if(!hasA && hasB) return 1;
+            if(!hasA && !hasB) return 0;
+
+            const remainingA = spawnA - now.getTime();
+            const remainingB = spawnB - now.getTime();
+
+            return remainingA - remainingB;
+        });
+
+        sectionCards.forEach((card,index)=>{
+            if(section.children[index] !== card){
+                section.insertBefore(card, section.children[index] || null);
+            }
+        });
+
+    });
+}
+
+
+function setDeath(name,hours){
+    const input = document.getElementById("input-"+name).value;
+    if(!input) return;
+
+    const [h,m] = input.split(":");
+    const death = new Date();
+
+    const now = new Date();
+    death.setHours(h, m, now.getSeconds(), now.getMilliseconds());
+
+    const spawn = death.getTime() + hours * 3600000;
+
+    db.ref("bossTimers/" + name).set({
+  spawn: spawn,
+  guild: "",
+});
+
+    triggerTimerAnimation(name);
+}
+
+
+function triggerTimerAnimation(bossName){
+    const cards = document.querySelectorAll(".card");
+
+    cards.forEach(card => {
+        const name = card.querySelector(".name").innerText;
+        if(name.includes(bossName)){
+            card.classList.add("timer-set");
+            setTimeout(() => {
+                card.classList.remove("timer-set");
+            }, 600);
+        }
+    });
+}
+
+let currentAdminBoss = null;
+let currentAdminHours = null;
+
+//errors fixed no more errors 1day fixed by teshi
+function openAdminLayer(name, hours){
+
+    currentAdminBoss = name;
+    currentAdminHours = hours;
+
+    const bossObj = bosses.find(b => b.name === name);
+    const adminImg = document.getElementById("adminBossImage");
+
+if(adminImg && bossObj?.image){
+    adminImg.src = bossObj.image;
+}
+
+    //  Select actual rows using IDs inside them
+    const quickTimeRow = document.getElementById("adminTime").closest(".admin-row");
+    const customRow = document.getElementById("adminDate").closest(".admin-row");
+
+    if(bossObj?.type === "fixed"){
+        quickTimeRow.style.display = "none";
+        customRow.style.display = "none";
+    } else {
+        quickTimeRow.style.display = "flex";
+        customRow.style.display = "flex";
+    }
+
+
+    let saved = cloudData[name];
+let spawnValue = null;
+
+if(saved){
+    if(typeof saved === "object"){
+        spawnValue = saved.spawn;
+    } else {
+        spawnValue = saved;
+    }
+}
+    if(spawnValue){
+           const zone =
+    selectedOffset === 9 ? "Asia/Seoul" :
+    selectedOffset === 8 ? "Asia/Manila" :
+    "Asia/Bangkok";
+
+const converted = new Date(
+    new Date(spawnValue).toLocaleString("en-US", { timeZone: zone })
+);
+
+    document.getElementById("adminCurrentTimer").innerText =
+        "Current Spawn: " + converted.toLocaleString([], {
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        });
+    } else {
+        document.getElementById("adminCurrentTimer").innerText =
+            "No timer set";
+    }
+
+    document.getElementById("adminLayer").classList.add("active");
+    document.body.style.overflow = "hidden";
+
+    // ===== ASSIST + OUR LOOT TOGGLE LOAD =====
+const assistBox = document.getElementById("adminAssist");
+const assistRow = document.getElementById("adminAssistRow");
+
+const claimBox = document.getElementById("adminClaim");
+const claimRow = document.getElementById("adminClaimRow");
+
+// show rows (you can decide rules)
+if(assistRow) assistRow.style.display = "flex";
+if(claimRow) claimRow.style.display = isAdmin ? "flex" : "none";
+
+// checkbox states (trim-safe)
+if(assistBox){
+  assistBox.disabled = !isAdmin;
+  assistBox.checked = !!assistFlags[name] || !!assistFlags[name.trim()];
+}
+
+if(claimBox){
+  claimBox.disabled = !isAdmin;
+  claimBox.checked = !!claimFlags[name] || !!claimFlags[name.trim()];
+}
+}
+
+
+function closeAdminLayer(){
+    document.getElementById("adminLayer").classList.remove("active");
+    document.body.style.overflow = "auto";
+}
+
+const setBtn = document.getElementById("adminSetBtn");
+
+if (setBtn) {
+    setBtn.onclick = function(){
+        const assistEnabled = document.getElementById("adminAssist")?.checked || false;
+const claimEnabled  = document.getElementById("adminClaim")?.checked || false;
+
+        if(!currentAdminBoss){
+            alert("No boss selected.");
+            return;
+        }
+
+        const k = currentAdminBoss.trim();
+
+db.ref("assistFlags/" + k).set(assistEnabled);
+db.ref("claimFlags/" + k).set(claimEnabled);
+
+if(claimEnabled) db.ref("assistFlags/" + k).set(false);
+if(assistEnabled) db.ref("claimFlags/" + k).set(false);
+
+        const bossObj = bosses.find(b => b.name === currentAdminBoss);
+
+        // FIXED BOSS → ONLY GUILD OKAY
+        if(bossObj?.type === "fixed"){
+
+            const guild = document.getElementById("adminGuild").value || "";
+            const k = currentAdminBoss.trim();
+            db.ref("fixedBossGuilds/" + k).set(guild);
+
+            closeAdminLayer();
+            return;
+        }
+
+        //  INTERVAL BOSS LIKE FOR BOSSES TIME SET
+        const input = document.getElementById("adminTime").value;
+        const guild = document.getElementById("adminGuild").value || "";
+
+        if(!input && !guild){
+            alert("Please set time or guild.");
+            return;
+        }
+
+        // If time is provided → update spawn
+        if(input){
+
+            const [h, m] = input.split(":");
+
+            const death = new Date();
+            const now = new Date();
+            death.setHours(parseInt(h), parseInt(m), now.getSeconds(), 0);
+
+            let spawn = death.getTime() + (currentAdminHours * 3600000);
+
+            db.ref("bossTimers/" + currentAdminBoss).set({
+    spawn: spawn,
+    guild: guild,
+    
+});
+
+            db.ref("bossHistory").push({
+                boss: currentAdminBoss,
+                deathTime: death.getTime(),
+                recordedAt: Date.now(),
+                setBy: currentAdminUser || "Unknown"
+            }).then(() => {
+                limitBossHistory();
+            });
+
+        } 
+        else {
+            // Only update guild oke
+            db.ref("bossTimers/" + currentAdminBoss + "/guild").set(guild);
+        }
+
+        closeAdminLayer();
+    };
+}
+
+
+const customBtn = document.getElementById("adminCustomBtn");
+
+if (customBtn) {
+    customBtn.onclick = function(){
+
+        const assistEnabled = document.getElementById("adminAssist")?.checked || false;
+const claimEnabled  = document.getElementById("adminClaim")?.checked || false;
+
+        if(!currentAdminBoss || currentAdminHours == null){
+            alert("No boss selected.");
+            return;
+        }
+        const k = currentAdminBoss.trim();
+
+db.ref("assistFlags/" + k).set(assistEnabled);
+db.ref("claimFlags/" + k).set(claimEnabled);
+
+if(claimEnabled) db.ref("assistFlags/" + k).set(false);
+if(assistEnabled) db.ref("claimFlags/" + k).set(false);
+
+        const dateValue = document.getElementById("adminDate").value;
+        const timeValue = document.getElementById("adminCustomTime").value;
+
+        if(!dateValue || !timeValue){
+            alert("Please select both date and time.");
+            return;
+        }
+
+        const death = new Date(dateValue + "T" + timeValue);
+
+        let spawn = death.getTime() + (currentAdminHours * 3600000);
+
     
 
-}
-
-.card:hover{
-    transform:translateY(-4px);
-    background:#313b45;
-}
-
-/* ================= MAIN CONTENT ================= */
-
-.card-main{
-    display:flex;
-    width:100%;
-    transition:opacity 0.3s ease;
-}
-
-.card-content{
-    padding:15px;
-    flex:1;
-
-    display:flex;
-    flex-direction:column;
-    gap:6px;  
-    
-    padding:15px;
-    flex:1;
-
-    position:relative;
-    z-index:5;
-}
-
-
-/* ================= OVERLAY ================= */
-
-.details-overlay{
-    position:absolute;
-    inset:0;
-    background: rgba(15,20,28,1);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    opacity:0;
-    pointer-events:none;
-    transition:opacity 0.3s ease;
-    border-radius:inherit;
-}
-
-.card.show-details{
-    border-left:4px solid transparent;
-}
-
-
-.admin-controls {
-    position: relative;
-    z-index: 5;
-}
-
-.card-content {
-    position: relative;
-    z-index: 2;
-}
-.card.menu-active {
-    z-index: 50; 
-
-    border-left: 4px solid transparent;
-    box-shadow: none;
-
-}
-
-
-.details-overlay {
-    z-index: 1;
-}
-
-
-/* Fade in when active */
-.card.show-details .details-overlay{
-    opacity:1;
-    pointer-events:auto;
-}
-
-/* Fade out main when overlay active */
-.card.show-details .timer,
-.card.show-details .spawn,
-.card.show-details .admin-controls {
-    display: none;
-}
-.card.show-details .card-content{
-    display: none;
-}
-
-/* ================= LOOT BOX ================= */
-
-.details-box h3{
-    transition: opacity 0.3s ease;
-}
-
-.details-box h3.fade-out{
-    opacity: 0;
-}
-
-.details-box{
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;   
-    padding-top:0;            
-}
-
-
-
-.details-box h3{
-    margin-bottom:18px;
-    margin:0;
-    padding:0;           
-    border:none;
-}
-
-.details-center{
-    border-top: none !important;
-}
-
-.details-center{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-}
-
-.details-topbar{
-    position:absolute;
-    top:12px;
-    right:12px;
-    z-index:10;
-}
-
-
-
-
-.boss-menu{
-    width:22px;
-    cursor:pointer;
-}
-
-.boss-menu span{
-    display:block;
-    height:3px;
-    background:#fff;
-    margin:4px 0;
-    border-radius:2px;
-    transition:0.3s;
-}
-
-.boss-menu.active span:nth-child(1){
-    transform:rotate(45deg) translate(5px,5px);
-}
-
-.boss-menu.active span:nth-child(2){
-    opacity:0;
-}
-
-.boss-menu.active span:nth-child(3){
-    transform:rotate(-45deg) translate(6px,-6px);
-}
-
-
-.boss-dropdown{
-    position:absolute;
-    top:45px;
-    right:15px;
-
-    max-height:0;
-    overflow:hidden;
-    transition:all 0.3s ease;
-
-    padding:0;
-
-    z-index:20;
-}
-
-
-
-
-.boss-dropdown.active{
-    max-height:300px;
-    padding:0;
-}
-
-
-.boss-dropdown p{
-    margin:4px 0;
-}
-.boss-info-box{
-    background: rgba(26,31,37,0.95);
-    backdrop-filter: blur(8px);
-
-    padding:18px 22px;
-    border-radius:14px;
-
-    border:1px solid rgba(255,255,255,0.08);
-
-    box-shadow:
-        0 10px 30px rgba(0,0,0,0.7),
-        0 0 20px rgba(77,166,255,0.08);
-
-    font-size:14px;
-    line-height:1.6;
-
-    word-break: normal;
-    overflow-wrap: normal; 
-
-    position: relative;
-    z-index: 70;
-
-}
-
-.boss-info-box strong{
-    color:#4da6ff;
-}
-
-.boss-info-box p{
-    margin:10px 0;
-    display:flex;
-    align-items:flex-start;
-}
-
-.info-label{
-    display:inline-block;
-    min-width:110px;
-    flex-shrink:0;
-    white-space:nowrap;   
-}
-
-
-
-
-
-.loot-grid{
-    display:flex; 
-    gap:12px;
-    justify-content:center;
-    margin-top:20px; 
-}
-
-/* ================= LOOT SLOT ================= */
-
-.loot-slot{
-    width:60px;
-    height:60px;
-    background:#2b3138;
-    border:2px solid #3b4755;
-    border-radius:6px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    transition:all 0.2s ease;
-}
-/* Darken + disable when menu open */
-.details-overlay.menu-open .loot-slot{
-    opacity:0.3;
-    pointer-events:none;
-    filter:brightness(0.6);
-    transition:0.3s ease;
-}
-
-
-.loot-slot img{
-    width:45px;
-    height:45px;
-    object-fit:contain;
-}
-
-.loot-slot:hover{
-    transform:scale(1.1);
-    border-color:#4da6ff;
-    box-shadow:0 0 12px rgba(77,166,255,0.7);
-}
-
-.card:hover{
-    transform:translateY(-4px);
-    background:#313b45;
-}
-
-.boss-img{
-    width:110px;
-     height:150px;
-    object-fit:cover;
-    object-position:top;
-    image-rendering: auto;
-    
-}
-
-
-
-
-.name{
-    font-weight:bold;
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-}
-
-.timer{ color:#4da6ff; margin-top:5px; }
-
-.spawn{ font-size:12px; color:#aaa; }
-
-.fixed{
-    font-size:10px;     
-    color:#888;
-    letter-spacing:0.5px;
-    opacity:0.8;
-}
-
-input{
-    margin-top:8px;
-    padding:6px;
-    background:#111;
-    border:1px solid #444;
-    color:white;
-    border-radius:4px;
-}
-
-button{
-    padding:6px 10px;
-    margin-left:5px;
-    background:#a8873a;
-    border:none;
-    border-radius:4px;
-    cursor:pointer;
-}
-
-
-.warning{ color:#ff9800 !important; font-weight:bold; }
-
-.ready{
-    color:#ff3b3b !important;
-    font-weight:bold;
-    animation:pulseGlow 1.5s infinite;
-}
-
-@keyframes pulseGlow {
-    0% { text-shadow:0 0 5px #ff3b3b; }
-    50% { text-shadow:0 0 20px #ff3b3b; }
-    100% { text-shadow:0 0 5px #ff3b3b; }
-}
-
-.admin-btn{
-    margin-left:10px;
-    padding:8px 14px;
-    background:linear-gradient(145deg,#3b0a0a,#7a1c1c);
-    color:white;
-    border:1px solid #aa2b2b;
-    border-radius:8px;
-    font-weight:bold;
-    cursor:pointer;
-    transition:all 0.3s ease;
-    box-shadow:0 0 8px rgba(255,0,0,0.3);
-    font-size:15px;
-    white-space:nowrap;
-}
-
-.admin-btn:hover{
-    background:linear-gradient(145deg,#5c0f0f,#a32222);
-    box-shadow:0 0 15px rgba(255,0,0,0.6);
-    transform:translateY(-2px);
-}
-
-.admin-btn:active{
-    transform:scale(0.95);
-}
-
-.admin-btn.active-admin{
-    background:linear-gradient(145deg,#8b0000,#ff0000);
-    box-shadow:0 0 20px rgba(255,0,0,0.8);
-}
-
-.site-title{
-    font-size:26px;
-    font-weight:800;
-    background:linear-gradient(90deg,#ff9800,#ff3b3b,#ff9800);
-    background-size:200% auto;
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    animation:titleGlow 4s linear infinite;
-    text-shadow:0 0 10px rgba(255,80,0,0.4);
-}
-
-@keyframes titleGlow{
-    0%{ background-position:0% center; }
-    100%{ background-position:200% center; }
-}
-
-.select-wrapper {
-    position: relative;
-    display: inline-block;
-}
-
-.select-wrapper select {
-    padding-right: 30px; 
-}
-
-.select-wrapper::after {
-    content: "▼";
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    color: #4da6ff;
-    font-size: 12px;
-}
-
-
-/* Rotate arrow when focused */
-.select-wrapper:focus-within::after{
-    transform:translateY(-50%) rotate(180deg);
-    color:#ff9800;
-}
-
-/* CLICK EXPAND DETAILS */
-
-.boss-details{
-    max-height:0;
-    overflow:hidden;
-    opacity:0;
-    transition:max-height 0.4s ease, opacity 0.3s ease;
-}
-
-.card.expanded .boss-details{
-    max-height:250px;
-    opacity:1;
-    margin-top:10px;
-}
-
-.details-content{
-    background:#1c222a;
-    padding:10px;
-    border-radius:8px;
-    margin-top:8px;
-}
-
-.drops{
-    display:flex;
-    gap:10px;
-    margin-top:8px;
-}
-
-.drop-img{
-    width:40px;
-    height:40px;
-    border-radius:6px;
-    transition:transform 0.2s ease;
-}
-
-.drop-img:hover{
-    transform:scale(1.2);
-}
-.name-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    overflow: visible;
-}
-
-
-.name-scroll {
-    display: inline-flex;
-    white-space: nowrap;
-    animation-name: tickerLoop;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-}
-
-
-.name-scroll span {
-    padding-right: 50px;
-}
-
-@keyframes tickerLoop {
-    0%   { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
-}
-
-.name-wrapper {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    margin-bottom: 10px;
-}
-
-.popup-item-img {
-    width: 70px;
-    height: 70px;
-    object-fit: contain;
-    border-radius: 8px;
-    border: 2px solid #333;
-    flex-shrink: 0;
-}
-
-.title-text {
-    display: flex;
-    flex-direction: column;
-}
-
-
-
-.item-popup{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.75);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    opacity:0;
-    pointer-events:none;
-    transition:opacity 0.25s ease;
-    z-index: 100001;   
-}
-
-
-.item-popup.active{
-    opacity:1;
-    pointer-events:auto;
-}
-
-.item-box{
-    background:#1f2730;
-    padding:25px;
-    border-radius:12px;
-    width:320px;
-    text-align:left;
-    box-shadow:0 0 20px rgba(0,0,0,0.6);
-    animation:fadeIn 0.2s ease;
-    overflow: visible; 
-}
-
-
-
-.item-box h3{
-    margin-top:0;
-    margin-bottom:10px;
-}
-
-
-
-@keyframes fadeIn{
-    from{ transform:scale(0.9); opacity:0; }
-    to{ transform:scale(1); opacity:1; }
-}
-
-/* ================= COMMON ================= */
-
-.name-common,
-.rarity-common {
-    font-weight: bold;
-
-    background: linear-gradient(
-        90deg,
-        #cbd5e1,
-        #e2e8f0,
-        #94a3b8,
-        #e2e8f0,
-        #cbd5e1
-    );
-    background-size: 200% auto;
-
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-
-    text-shadow:
-        0 0 4px rgba(203,213,225,0.5),
-        0 0 10px rgba(148,163,184,0.3);
-
-    animation: rarityFlow 4s linear infinite;
-}
-
-/* ================= RARE ================= */
-
-.name-rare,
-.rarity-rare {
-    font-weight: bold;
-
-    background: linear-gradient(
-        90deg,
-        #3b82f6,
-        #60a5fa,
-        #2563eb,
-        #60a5fa,
-        #3b82f6
-    );
-    background-size: 200% auto;
-
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-
-    text-shadow:
-        0 0 6px rgba(59,130,246,0.7),
-        0 0 15px rgba(37,99,235,0.5);
-
-    animation: rarityFlow 3s linear infinite;
-}
-
-/* ================= UNCOMMON ================= */
-
-.name-uncommon,
-.rarity-uncommon {
-    font-weight: bold;
-
-    background: linear-gradient(
-        90deg,
-        #16a34a,
-        #22c55e,
-        #15803d,
-        #22c55e,
-        #16a34a
-    );
-    background-size: 200% auto;
-
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-
-    text-shadow:
-        0 0 6px rgba(34,197,94,0.6),
-        0 0 14px rgba(21,128,61,0.5);
-
-    animation: rarityFlow 3s linear infinite;
-}
-
-/* Shared smooth animation */
-@keyframes rarityFlow {
-    0% { background-position: 0% center; }
-    100% { background-position: 200% center; }
-}
-
-.rarity-epic {
-    color: #c084fc;
-    font-weight: bold;
-
-    text-shadow:
-        0 0 4px rgba(192, 132, 252, 0.5),
-        0 0 8px rgba(236, 72, 153, 0.3);
-}
-
-/* ================= LEGENDARY ================= */
-
-.name-legendary,
-.rarity-legendary {
-    font-weight: bold;
-
-    background: linear-gradient(
-        90deg,
-        #ffd54f,
-        #ff9800,
-        #ff6f00,
-        #ff9800,
-        #ffd54f
-    );
-    background-size: 200% auto;
-
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-
-    text-shadow:
-        0 0 6px rgba(255, 200, 0, 0.7),
-        0 0 14px rgba(255, 140, 0, 0.6),
-        0 0 25px rgba(255, 100, 0, 0.5);
-
-    animation: mythicRadiant 3s linear infinite; 
-}
-
-
-
-
-
-@keyframes legendaryRarityGlow {
-    0% {
-        text-shadow:
-            0 0 3px rgba(255, 200, 0, 0.3),
-            0 0 6px rgba(255, 140, 0, 0.25);
-    }
-    50% {
-        text-shadow:
-            0 0 8px rgba(255, 200, 0, 0.6),
-            0 0 15px rgba(255, 140, 0, 0.4);
-    }
-    100% {
-        text-shadow:
-            0 0 3px rgba(255, 200, 0, 0.3),
-            0 0 6px rgba(255, 140, 0, 0.25);
-    }
-}
-
-
-
-.name-epic {
-    color: #c084fc; 
-
-    text-shadow:
-        0 0 4px rgba(192, 132, 252, 0.5),
-        0 0 10px rgba(236, 72, 153, 0.35),
-        0 0 18px rgba(168, 85, 247, 0.25);
-}
-
-
-
-.name-mythic {
-    font-weight: bold;
-
-    background: linear-gradient(
-        90deg,
-        #4b0000,
-        #ff1a1a,
-        #990000,
-        #ff1a1a,
-        #4b0000
-    );
-    background-size: 200% auto;
-
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-
-    text-shadow:
-        0 0 6px rgba(255, 0, 0, 0.6),
-        0 0 15px rgba(150, 0, 0, 0.5),
-        0 0 30px rgba(0, 0, 0, 0.6);
-
-    animation: mythicRadiant 3s linear infinite;
-}
-
-/* ================= MYTHIC ================= */
-
-.name-mythic,
-.rarity-mythic {
-    font-weight: bold;
-
-    background: linear-gradient(
-        90deg,
-        #3a0000,
-        #ff1a1a,
-        #7a0000,
-        #ff1a1a,
-        #3a0000
-    );
-    background-size: 200% auto;
-
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-
-    text-shadow:
-        0 0 8px rgba(255, 0, 0, 0.9),
-        0 0 18px rgba(180, 0, 0, 0.8),
-        0 0 35px rgba(120, 0, 0, 0.7),
-        0 0 60px rgba(0, 0, 0, 0.8);
-
-    animation: mythicRadiant 3s linear infinite;
-}
-
-
-@keyframes mythicRadiant {
-    0% { background-position: 0% center; }
-    100% { background-position: 200% center; }
-}
-
-.name-scroll span {
-    display: inline-block;
-}
-
-.item-options {
-    max-height: 180px;
-    overflow-y: auto;
-    margin-top: 10px;
-    border-top: 1px solid rgba(255,255,255,0.15);
-    padding-top: 0;   
-    font-size: 13px;
-}
-
-
-/* HEADER ROW */
-.option-header {
-    display: grid;
-    grid-template-columns: 1fr 60px 80px;
-    padding: 8px 0;
-    font-weight: bold;
-    color: #aaa;
-
-    position: sticky;
-    top: 0;
-
-    background: #1f2730;
-    z-index: 5;
-
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-}
-
-
-/* OPTION ROW */
-.option-row {
-    display: grid;
-    grid-template-columns: 1fr 60px 80px;
-    padding: 4px 0;
-    align-items: center;
-}
-
-.option-row span:nth-child(2) {
-    text-align: right;
-}
-
-.option-row span:nth-child(3) {
-    text-align: right;
-    color: #4da6ff;
-}
-
-/* ===== CUSTOM SCROLLBAR ===== */
-.item-options::-webkit-scrollbar {
-    width: 8px;
-}
-
-.item-options::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.05);
-    border-radius: 6px;
-}
-
-.item-options::-webkit-scrollbar-thumb {
-    background: linear-gradient(
-        180deg,
-        #4da6ff,
-        #2563eb
-    );
-    border-radius: 6px;
-    box-shadow: 0 0 8px rgba(77,166,255,0.6);
-}
-
-.item-options::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(
-        180deg,
-        #60a5fa,
-        #1d4ed8
-    );
-}
-
-/* ===== MAIN PAGE SCROLLBAR ===== */
-
-/* Width */
-body::-webkit-scrollbar {
-    width: 12px;
-}
-
-/* Track (background) */
-body::-webkit-scrollbar-track {
-    background: #0a0f14;
-    border-left: 1px solid #1f2c3a;
-}
-
-/* Thumb (the draggable part) */
-body::-webkit-scrollbar-thumb {
-    background: linear-gradient(
-        180deg,
-        #1e2a38,
-        #243447,
-        #1e2a38
-    );
-    border-radius: 10px;
-    border: 2px solid #0a0f14;
-}
-
-/* Hover effect */
-body::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(
-        180deg,
-        #4da6ff,
-        #2196f3,
-        #4da6ff
-    );
-}
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-@media (max-width: 768px) {
-
-    .aztec {
-        display: none;
-    }
-
-    .header {
-        padding: 10px 15px;
-    }
-
-    .header-top {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .logo {
-        font-size: 18px;
-        text-align: center;
-        margin-bottom: 8px;
-    }
-
-    .header-center {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-    }
-
-}
-.item-popup-box {
-    width: 90%;
-    max-width: 500px;
-}
-@media (max-width: 768px) {
-
-    .name {
-        font-size: 16px;
-    }
-
-    .timer {
-        font-size: 14px;
-    }
-
-}
-
-@media (max-width: 768px) {
-
-    .item-popup-box {
-        width: 95%;
-        max-height: 85vh;
-        overflow-y: auto;
-        padding: 15px;
-    }
-
-}
-/* Tablet */
-@media (max-width:900px){
-    select{
-        min-width:130px;
-        font-size:14px;
-        padding:6px 10px;
-    }
-}
-
-
-
-.dev-banner{
-    text-align:center;
-    padding:10px;
-    font-size:14px;
-    font-weight:bold;
-    letter-spacing:1px;
-
-    background:linear-gradient(
-        90deg,
-        #ff9800,
-        #ff3b3b,
-        #ff9800
-    );
-    background-size:200% auto;
-
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-
-    animation:devGlow 4s linear infinite;
-}
-
-@keyframes devGlow{
-    0%{ background-position:0% center; }
-    100%{ background-position:200% center; }
-}
-
-.custom-mode input[type="date"]{
-    width:120px;
-}
-
-.custom-mode input[type="time"]{
-    width:95px;
-}
-
-
-.admin-layer{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.8);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    z-index:2000;
-
-    opacity:0;
-    pointer-events:none;
-    transition:opacity 0.3s ease;
-}
-
-
-.admin-layer.active{
-    opacity:1;
-    pointer-events:auto;
-}
-
-
-.admin-box{
-    background:#1c222a;
-    padding:35px 45px;
-    border-radius:18px;
-
-    width:auto;                
-    min-width:600px;            
-    max-width:800px;
-
-    height:auto;              
-    min-height:unset;          
-
-    box-shadow:0 0 40px rgba(0,0,0,0.7);
-}
-
-
-
-
-.admin-box h2{
-    margin-bottom:15px;
-}
-
-.admin-inputs input{
-    padding:8px;
-    margin-right:5px;
-}
-
-.admin-close{
-    margin-top:15px;
-    padding:8px 16px;
-    background:linear-gradient(145deg,#3a3a3a,#555);
-    border:1px solid #777;
-    border-radius:8px;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-    transition:all 0.3s ease;
-    box-shadow:0 0 10px rgba(0,0,0,0.4);
-}
-
-.admin-close:hover{
-    background:linear-gradient(145deg,#555,#777);
-    box-shadow:0 0 15px rgba(150,150,150,0.5);
-    transform:translateY(-2px);
-}
-
-.admin-close:active{
-    transform:scale(0.95);
-}
-
-
-.admin-reset{
-    background:#7a1c1c;
-    border:1px solid #aa2b2b;
-    color:white;
-}
-
-.admin-reset:hover{
-    background:#a32222;
-}
-.admin-action{
-    background:linear-gradient(145deg,#1e2a38,#243447);
-    border:1px solid #3b4755;
-    color:white;
-    padding:8px 14px;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:bold;
-    transition:all 0.3s ease;
-    box-shadow:0 0 8px rgba(77,166,255,0.2);
-}
-
-.admin-action:hover{
-    background:linear-gradient(145deg,#2563eb,#4da6ff);
-    border-color:#4da6ff;
-    box-shadow:0 0 15px rgba(77,166,255,0.6);
-    transform:translateY(-2px);
-}
-
-.admin-action:active{
-    transform:scale(0.95);
-}
-
-.custom-row{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    flex-wrap:wrap;
-}
-
-.admin-inputs input{
-    margin-right:8px;
-    margin-left:12px;
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-}
-
-
-.admin-header{
-    display:flex;
-    align-items:center;
-    gap:24px;
-    margin-bottom:25px;
-}
-
-
-
-
-.admin-title-group{
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-}
-
-.admin-title-group h2{
-    margin:0;
-    font-size:32px;
-}
-
-.admin-current{
-    margin-top:10px;
-    font-size:16px;
-    color:#aaa;
-}
-
-.admin-inputs{
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-    margin-top:20px;
-}
-
-.admin-row{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    flex-wrap:wrap;
-}
-
-
-
-.admin-boss-img{
-    width:120px;
-    height:120px;
-
-    object-fit:cover;
-    object-position: top;
-
-    border-radius:16px;
-    border:2px solid #2a313a;
-
-    box-shadow:
-        0 0 25px rgba(77,166,255,0.25),
-        0 10px 30px rgba(0,0,0,0.6);
-
-    transform: translateY(-8px);   
-    transition: transform 0.3s ease;
-}
-
-
-/* === SET TIMER CLICK ANIMATION === */
-
-.card.timer-set {
-    animation: timerGlow 0.6s ease;
-}
-
-@keyframes timerGlow {
-    0% {
-        box-shadow: 0 0 0 rgba(77,166,255,0);
-        transform: scale(1);
-    }
-    30% {
-        box-shadow: 0 0 25px rgba(77,166,255,0.8);
-        transform: scale(1.02);
-    }
-    100% {
-        box-shadow: 0 0 0 rgba(77,166,255,0);
-        transform: scale(1);
-    }
-}
-
-.open-admin{
-    padding:8px 14px;
-    background:linear-gradient(145deg,#1e2a38,#243447);
-    border:1px solid #3b4755;
-    border-radius:8px;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-    transition:all 0.3s ease;
-    box-shadow:0 0 8px rgba(77,166,255,0.2);
-}
-
-/* Hover effect */
-.open-admin:hover{
-    background:linear-gradient(145deg,#2563eb,#4da6ff);
-    border-color:#4da6ff;
-    box-shadow:0 0 18px rgba(77,166,255,0.7);
-    transform:translateY(-2px);
-}
-
-/* Click press */
-.open-admin:active{
-    transform:scale(0.95);
-    box-shadow:0 0 10px rgba(77,166,255,0.4);
-}
-
-.admin-controls{
-    margin-top:16px;
-    display:flex;
-    align-items:center;
-}
-
-
-
-/* Button click bounce */
-.admin-action.clicked {
-    animation: buttonPop 0.3s ease;
-}
-
-@keyframes buttonPop {
-    0% { transform: scale(1); }
-    50% { transform: scale(0.92); }
-    100% { transform: scale(1); }
-}
-
-.all-loots-btn{
-    cursor:pointer;
-    position:relative;
-    display:inline-block;
-    transition:all 0.25s ease;
-}
-.all-loots-btn::after{
-    content:"";
-    position:absolute;
-    left:0;
-    bottom:-3px;
-    width:0%;
-    height:2px;
-    background:#4da6ff;
-    transition:width 0.3s ease;
-}
-
-.all-loots-btn:hover{
-    color:#4da6ff;
-    transform:translateX(4px);
-    text-shadow:0 0 8px rgba(77,166,255,0.6);
-}
-
-.all-loots-btn:hover::after{
-    width:100%;
-}
-
-
-.all-loots-btn:hover{
-    color:#4da6ff;
-    transform:translateX(3px);
-}
-
-.all-loot-popup{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.8);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    opacity:0;
-    pointer-events:none;
-    transition:0.3s ease;
-
-    z-index:1000;  
-}
-
-
-.all-loot-popup.active{
-    opacity:1;
-    pointer-events:auto;
-}
-
-.all-loot-box {
-    background:#1f2730;
-    padding:30px;
-    border-radius:20px;
-
-    width:90%;
-    max-width:1100px;
-
-    max-height:85vh;
-    overflow-y:auto;
-}
-
-
-.all-loot-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:20px;
-}
-
-#allLootGrid {
-    display:flex;
-    flex-wrap:wrap;
-    gap:15px;
-    justify-content:flex-start; 
-}
-
-
-.close-btn{
-    cursor:pointer;
-    font-size:20px;
-}
-
-.map-btn {
-    background: linear-gradient(145deg,#1e2a38,#243447);
-    border:1px solid #3b4755;
-    color:white;
-    padding:8px 14px;
-    border-radius:8px;
-    font-weight:bold;
-    cursor:pointer;
-    transition:0.3s;
-}
-
-.map-btn:hover{
-    background:linear-gradient(145deg,#2563eb,#4da6ff);
-    box-shadow:0 0 15px rgba(77,166,255,0.6);
-}
-
-/* Overlay */
-
-.map-overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.85);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    opacity:0;
-    pointer-events:none;
-    transition:0.3s;
-    z-index:5000;
-}
-
-.map-overlay.active{
-    opacity:1;
-    pointer-events:auto;
-}
-
-.map-container{
-    width:85%;
-    height:85vh;
-    background:#111;
-
-    display:flex;
-    flex-direction:column;  
-
-    border-radius:20px;
-    overflow:visible;
-}
-
-/* Sidebar */
-
-.map-sidebar{
-    width:250px;
-    background:#0f1418;
-    padding:20px;
-    border-right:1px solid #222;
-
-    height:100%;
-    overflow-y:auto;
-}
-.map-sidebar::-webkit-scrollbar{
-    width:6px;
-}
-
-.map-sidebar::-webkit-scrollbar-thumb{
-    background:#4da6ff;
-    border-radius:6px;
-}
-
-
-.map-sidebar h3{
-    margin-bottom:20px;
-    color:#4da6ff;
-}
-
-.map-region{
-    padding:12px;
-    margin-bottom:10px;
-    background:#1a1f25;
-    border-radius:8px;
-    cursor:pointer;
-    transition:0.2s;
-}
-
-.map-region:hover{
-    background:#243447;
-}
-
-.map-region.active{
-    background:#4da6ff;
-    color:#000;
-    font-weight:bold;
-}
-
-/* Map Content */
-
-.map-content{
-    flex:1;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#000;
-}
-
-
-/* Top Tabs */
-
-.map-topbar{
-    display:flex;
-    justify-content:flex-start;   
-    align-items:center;
-
-    gap:30px;
-
-    background:#0f1418;
-    padding:15px 25px;            
-    border-bottom:1px solid #222;
-}
-
-.map-back-btn{
-    position:absolute;
-    right:25px;
-    top:50%;
-    transform:translateY(-50%);
-
-    width:110px;        /* 🔥 bigger */
-    height:50px;
-
-    border-radius:14px; /* 🔥 smooth rectangle */
-
-    border:1px solid rgba(255,255,255,0.1);
-
-    background:linear-gradient(145deg,#1e2a38,#243447);
-    color:#4da6ff;
-
-    font-size:18px;
-    font-weight:bold;
-
-    cursor:pointer;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    transition:all 0.3s ease;
-
-    box-shadow:0 0 15px rgba(77,166,255,0.25);
-}
-
-.map-info-popup{
-    position: fixed;
-    bottom: 40px;
-    right: 40px;
-
-    background: rgba(15,20,28,0.95);
-    padding: 18px 22px;
-    border-radius: 12px;
-
-    border: 1px solid rgba(77,166,255,0.3);
-    box-shadow: 0 0 20px rgba(0,0,0,0.6);
-
-    color: white;
-    width: 240px;
-
-    opacity: 0;
-    transform: translateY(15px);
-    transition: all 0.25s ease;
-
-    z-index: 99999;
-}
-
-.map-info-popup.show{
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.map-info-popup h3{
-    margin: 0 0 8px 0;
-    color: #4da6ff;
-}
-
-.map-info-popup p{
-    margin: 4px 0;
-    font-size: 14px;
-}
-.map-hover-tooltip{
-    position: fixed;
-    transform: translate(-50%, -100%);
-
-    background: rgba(15,20,28,0.95);
-    padding: 6px 10px;
-    border-radius: 6px;
-
-    font-size: 13px;
-    color: white;
-    white-space: nowrap;
-
-    border: 1px solid rgba(77,166,255,0.4);
-    box-shadow: 0 0 10px rgba(0,0,0,0.6);
-
-    pointer-events: none;
-    z-index: 99999;
-
-    opacity: 0;
-    animation: fadeInTooltip 0.2s forwards;
-}
-
-@keyframes fadeInTooltip{
-    to { opacity: 1; }
-}
-
-/* Hover effect */
-.map-back-btn:hover{
-    background:linear-gradient(145deg,#2563eb,#4da6ff);
-    color:white;
-
-    transform:translateY(-50%) scale(1.05);
-
-    box-shadow:0 0 25px rgba(77,166,255,0.8);
-}
-
-
-/* Click effect */
-.map-back-btn:active{
-    transform:translateY(-50%) scale(0.9);
-}
-
-
-
-.continent-tab{
-    position:relative;
-    cursor:pointer;
-    font-weight:bold;
-    color:#aaa;
-    padding:14px 22px;
-    transition:all 0.3s ease;
-    overflow:hidden;
-}
-
-/* Hover glow sweep */
-.continent-tab::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:-100%;
-    width:100%;
-    height:100%;
-    background:linear-gradient(
-        120deg,
-        transparent,
-        rgba(77,166,255,0.2),
-        transparent
-    );
-    transition:all 0.6s ease;
-}
-
-/* Animate sweep */
-.continent-tab:hover::before{
-    left:100%;
-}
-
-/* Hover text effect */
-.continent-tab:hover{
-    color:#4da6ff;
-    transform:translateY(-2px);
-    text-shadow:0 0 12px rgba(77,166,255,0.8);
-}
-
-/* Active tab */
-.continent-tab.active{
-    color:#4da6ff;
-}
-
-.continent-tab.active::after{
-    content:"";
-    position:absolute;
-    bottom:0;
-    left:0;
-    width:100%;
-    height:3px;
-    background:linear-gradient(90deg,#4da6ff,#2563eb,#4da6ff);
-    animation:activeGlow 2s linear infinite;
-}
-
-@keyframes activeGlow{
-    0%{ background-position:0% center; }
-    100%{ background-position:200% center; }
-}
-
-
-.continent-tab:hover{
-    color:#4da6ff;
-}
-
-.continent-tab.active{
-    color:#4da6ff;
-    border-bottom:3px solid #4da6ff;
-}
-
-/* Body Layout */
-
-.map-body{
-    display:flex;
-    flex:1;       
-    min-height:0;  
-}
-
-.main-region{
-    font-weight:bold;
-    padding:12px;
-    margin-top:15px;
-    background:#1e2a38;
-    border-radius:6px;
-}
-
-.sub-region{
-    padding:10px 20px;
-    border-bottom:1px solid rgba(255,255,255,0.05);
-    font-size:14px;
-
-    opacity: 0;
-    transform: translateY(-8px);
-    transition: all 0.3s ease;
-}
-.zone-container.open .sub-region{
-    opacity: 1;
-    transform: translateY(0);
-}
-.zone-container{
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: 
-        max-height 0.4s ease,
-        opacity 0.3s ease,
-        transform 0.3s ease;
-}
-
-.zone-container.open{
-    max-height: 1000px; 
-    opacity: 1;
-    transform: translateY(0);
-}
-
-
-
-.main-region{
-    font-weight:bold;
-    padding:12px;
-    margin-top:15px;
-    background:#1e2a38;
-    border-radius:6px;
-    cursor:pointer;
-    transition:0.2s;
-}
-
-.main-region:hover{
-    background:#243447;
-}
-.sub-region{
-    padding:10px 20px;
-    border-bottom:1px solid rgba(255,255,255,0.05);
-    font-size:14px;
-    transition: all 0.25s ease;
-    position: relative;
-}
-.sub-region::after{
-    content:"";
-    position:absolute;
-    left:0;
-    bottom:0;
-    width:0%;
-    height:2px;
-    background:#4da6ff;
-    transition:width 0.3s ease;
-}
-
-.sub-region:hover::after{
-    width:100%;
-}
-
-.sub-region:hover{
-    background: #1c2733;
-    transform: translateX(6px);
-    box-shadow: -3px 0 0 #4da6ff inset;
-}
-
-.map-inner img{
-    display:block;
-    width:auto;
-    height:auto;
-    max-width:none;
-    max-height:none;
-    user-select:none;
-    pointer-events:none;
-}
-
-
-.map-content img.map-animate {
-    opacity: 0;
-    transform: scale(1.05);
-}
-.map-content {
-    flex:1;
-    display:block;
-    align-items:center;
-    justify-content:center;
-    background:#000;
-    overflow:hidden;
-    position:relative;
-    cursor:grab;
-}
-
-.map-inner{
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform-origin: 0 0;
-}
-
-
-.boss-marker{
-    position:absolute;
-    transform:translate(-50%, -50%);
-    font-size:22px;
-    cursor:pointer;
-    z-index:5;
-    transition:0.2s ease;
-}
-
-.boss-marker:hover{
-    transform:translate(-50%, -50%) scale(1.3);
-}
-
-
-.map-content:active{
-    cursor:grabbing;
-}
-
-
-.map-sticky-bar{
-    position: sticky;
-    top: 90px; 
-    z-index: 4000;
-
-    padding: 10px 20px;
-
-    background: linear-gradient(
-        90deg,
-        rgba(10,15,20,0.95),
-        rgba(15,20,28,0.95)
-    );
-
-    backdrop-filter: blur(6px);
-}
-
-.boss-marker {
-    border-radius: 50%;
-}
-
-.boss-marker:hover {
-    transform: translate(-50%, -50%) scale(1.1);
-    filter: brightness(1.1);
-}
-
-
-/* ===== WORLD BOSS STYLE ===== */
-
-.world-boss-container{
-    display:flex;
-    gap:40px;
-    justify-content:center;
-    padding:40px 0;
-}
-
-.world-boss-card{
-    width:280px;
-    background:linear-gradient(180deg,#14181c,#0f1216);
-    border:2px solid #2a2f36;
-    border-radius:16px;
-    overflow:hidden;
-    text-align:center;
-    box-shadow:0 0 30px rgba(0,0,0,0.7);
-    transition:0.3s ease;
-}
-
-.world-boss-card:hover{
-    transform:translateY(-8px);
-    box-shadow:0 0 40px rgba(159,122,234,0.4);
-}
-.world-boss-card.selected{
-    transform:translateY(-8px);
-    box-shadow:0 0 40px rgba(159,122,234,0.7);
-    border:2px solid #c084fc;
-}
-
-
-.world-boss-img{
-    width:100%;
-    height:320px;
-    object-fit:cover;
-}
-
-
-.world-boss-name{
-    font-size:22px;
-    color:#c084fc;
-    font-weight:bold;
-    margin:12px 0;
-}
-
-.world-boss-time{
-    background:#0f1418;
-    padding:15px;
-    font-size:14px;
-    color:#ddd;
-}
-
-.world-boss-location{
-    background:#111;
-    padding:12px;
-    font-size:14px;
-    border-top:1px solid #333;
-    color:#aaa;
-}
-
-.card[data-category="world"]{
-    display:none;
-}
-
-
-.world-overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.85);
-    backdrop-filter:blur(6px);
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    opacity:0;
-    pointer-events:none;
-    transition:opacity 0.35s ease;
-
-    z-index:9999;
-}
-
-.world-overlay.active{
-    opacity:1;
-    pointer-events:auto;
-    display: flex;
-}
-
-.world-overlay-box{
-    width:90%;
-    max-width:1200px;
-    background:#0f1418;
-    border:2px solid #333;
-    border-radius:20px;
-    padding:30px;
-
-    transform:scale(0.85) translateY(30px);
-    opacity:0;
-
-    transition:all 0.4s cubic-bezier(.2,.8,.2,1);
-}
-
-.world-overlay.active .world-overlay-box{
-    transform:scale(1) translateY(0);
-    opacity:1;
-}
-
-.world-overlay-header{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    margin-bottom:30px;
-    position:relative;
-}
-
-
-.world-overlay-header h2{
-    color:#c084fc;
-    text-align:center;
-    width:100%;
-    margin:0;
-}
-
-
-.world-overlay-header button{
-    position: absolute;
-    right: 0;
-    background:none;
-    border:none;
-    color:white;
-    font-size:22px;
-    cursor:pointer;
-}
-
-.world-overlay-content{
-    display:flex;
-    gap:40px;
-    justify-content:center;
-}
-/* ===== MOBILE HEADER CLEAN MODE ===== */
-@media (max-width: 768px) {
-
-    /* Hide buttons you don't want */
-    #worldBossBtn,
-    #openMapBtn,
-    .map-btn,
-    .map-sticky-bar,
-    .dev-banner {
-        display: none !important;
-    }
-
-    /* Keep header compact */
-    header {
-        padding: 12px 15px;
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-
-    .header-left,
-    .header-center,
-    .header-right {
-        justify-content: center;
-    }
-
-    /* Stack nicely */
-    .header-left {
-        margin-bottom: 8px;
-    }
-
-}
-
-@media (max-width: 768px) {
-
-    .loot-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        justify-items: center;
-    }
-
-    .loot-grid .loot-slot:nth-child(4) {
-        display: none;
-    }
-
-}
-@media (max-width: 768px) {
-
-    .loot-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 60px);
-        gap: 12px;
-        justify-content: center;
-    }
-
-    /* Hide the 4th loot for mobile gets? */
-    .loot-grid .loot-slot:nth-child(4) {
-        display: none;
-    }
-
-}
-
-@media (max-width: 768px) {
-
-    .cp-loot-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        column-gap: 8px;   
-        row-gap: 0;        
-    }
-
-    .cp-loot-grid .loot-slot {
-        margin: 0;
-    }
-
-}
-@media (max-width: 768px) {
-
-    #allLootGrid {
+        const guild = document.getElementById("adminGuild").value || "";
+
+// Ctrl+F: if(guild){
+if(guild){
+    db.ref("bossTimers/" + currentAdminBoss).set({
+        spawn: spawn,
+        guild: guild,
         
-        grid-template-columns: repeat(5, 1fr);
+    });
+}
 
-        width: 80%;            
-        max-width: 80%;
-        margin: 0 auto;        
-        padding: 20px;
-        border-radius: 20px;
-        
+        discordAlertsSent[currentAdminBoss] = false;
+
+        db.ref("bossHistory").push({
+    boss: currentAdminBoss,
+    deathTime: death.getTime(),
+    recordedAt: Date.now(),
+    setBy: currentAdminUser || "Unknown"
+}).then(() => {
+    limitBossHistory();
+});
+
+
+
+        triggerTimerAnimation(currentAdminBoss);
+        closeAdminLayer();
+    };
+}
+
+
+const resetBtn = document.getElementById("adminResetBtn");
+
+if (resetBtn) {
+    resetBtn.onclick = function(){
+
+        if(!currentAdminBoss){
+            alert("No boss selected.");
+            return;
+        }
+
+        const k = currentAdminBoss.trim();
+db.ref("assistFlags/" + k).set(false);
+db.ref("claimFlags/" + k).set(false);
+        if(!confirm("Reset this?")){
+            return;
+        }
+
+        const bossObj = bosses.find(b => b.name === currentAdminBoss);
+
+        if(bossObj?.type === "fixed"){
+            db.ref("fixedBossGuilds/" + currentAdminBoss.trim()).remove();
+        } else {
+            db.ref("bossTimers/" + currentAdminBoss).remove();
+        }
+
+        triggerTimerAnimation(currentAdminBoss);
+        closeAdminLayer();
+    };
+}
+
+const removeGuildBtn = document.getElementById("adminRemoveGuildBtn");
+
+if(removeGuildBtn){
+    removeGuildBtn.onclick = function(){
+
+        if(!currentAdminBoss){
+            alert("No boss selected.");
+            return;
+        }
+
+        const bossObj = bosses.find(b => b.name === currentAdminBoss);
+
+        if(bossObj?.type === "fixed"){
+            const k = currentAdminBoss.trim();
+            db.ref("fixedBossGuilds/" + k).set(guild);
+        } else {
+            db.ref("bossTimers/" + currentAdminBoss + "/guild").remove();
+        }
+
+        // remove badge instantly
+        const card = document.querySelector(`.card[data-name="${currentAdminBoss}"]`);
+        if(card){
+            const nameEl = card.querySelector(".name");
+            const existingGuildTag = nameEl.querySelector(".guild-tag");
+            if(existingGuildTag){
+                existingGuildTag.remove();
+            }
+        }
+
+        closeAdminLayer();
+    };
+}
+console.log("Bosses:", bosses);
+console.log("LootData:", lootData);
+
+bosses.forEach(createCard);
+updateBadgesUI();
+
+
+
+document.addEventListener("click", function(e){
+
+    if(e.target.closest(".loot-slot")){
+        return;
     }
 
+    if(e.target.closest(".open-admin")){
+    return;
 }
 
-@media (max-width: 768px) {
-    .all-loot-box {
-        padding: 15px 0;  
+    const clickedCard = e.target.closest(".card");
+
+    document.querySelectorAll(".card").forEach(card => {
+
+        if(card !== clickedCard){
+            card.classList.remove("show-details");
+            resetCardState(card);   // THIS IS THE MAGIC BY VS CODE AI DAMN
+        }
+
+    });
+
+    if(clickedCard && !e.target.closest(".open-admin")){
+    clickedCard.classList.toggle("show-details");
+}
+});
+
+// HANDLE SMALL LOOT CLICK (CARD LOOT)
+document.addEventListener("click", function(e){
+
+    const slot = e.target.closest(".loot-slot");
+    if(!slot) return;
+
+    e.stopPropagation();
+
+    openItemPopupFromSlot(slot);
+});
+
+
+applyAdminMode();
+
+function applyAdminMode(){
+  document.querySelectorAll(".admin-controls").forEach(control=>{
+    control.style.display = isAdmin ? "block" : "none";
+  });
+
+  const historyBtn = document.getElementById("historyBtn");
+  if(historyBtn) historyBtn.style.display = "inline-block";
+}
+
+
+
+
+function startTimer(){
+    updateTimers();
+    setInterval(()=>{
+    updateTimers();
+    if (!isTyping) sortBosses();
+}, 1000);
+
+}
+function toggleBossMenu(event, bossName){
+    event.stopPropagation();
+
+    const menu = document.getElementById("menu-" + bossName);
+    const button = event.currentTarget;
+    const card = button.closest(".card");
+    const title = card.querySelector(".details-box h3");
+    const overlay = card.querySelector(".details-overlay");
+
+    const isActive = menu.classList.toggle("active");
+    card.classList.toggle("menu-active", isActive);
+
+    button.classList.toggle("active");
+
+    if(isActive){
+        title.classList.add("fade-out");
+        overlay.classList.add("menu-open");
+    } else {
+        title.classList.remove("fade-out");
+        overlay.classList.remove("menu-open");
     }
 }
 
-/* ===== HISTORY POPUP ===== */
+function showAllLoot(bossName){
 
-#historyPopup .overlay-content {
-    width: 500px;
-    max-height: 70vh;
-    overflow-y: auto;
-    padding: 25px;
-    background: #1e1e1e;
-    border-radius: 12px;
-    box-shadow: 0 0 30px rgba(0,0,0,0.6);
-}
-
-#historyList {
-    margin-top: 20px;
-}
-
-.history-entry {
-    padding: 14px 16px;
-    margin-bottom: 12px;
-    background: #2a2a2a;
-    border-radius: 8px;
-    border-left: 4px solid #f5c542;
-    transition: 0.2s ease;
-}
-
-.history-entry:hover {
-    background: #323232;
-    transform: translateX(3px);
-}
-
-.history-boss {
-    font-weight: 600;
-    font-size: 16px;
-    margin-bottom: 4px;
-    color: #ffffff;
-}
-
-.history-time {
-    font-size: 14px;
-    color: #bbbbbb;
-}
-
-
-/* ===== HISTORY TABS ===== */
-
-.history-tabs {
-    display: flex;
-    gap: 10px;
-    margin: 15px 0;
-}
-
-.history-tab {
-    flex: 1;
-    padding: 8px;
-    background: #2a2a2a;
-    border: none;
-    border-radius: 6px;
-    color: #aaa;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.history-tab.active {
-    background: #f5c542;
-    color: #111;
-    font-weight: 600;
-}
-
-.history-tab:hover {
-    background: #3a3a3a;
-}
-
-/* ===== HISTORY SCROLL AREA ===== */
-#historyList {
-    max-height: 400px;
-    overflow-y: auto;
-    padding-right: 6px;
-}
-
-/* Scrollbar */
-#historyList::-webkit-scrollbar {
-    width: 8px;
-}
-
-#historyList::-webkit-scrollbar-track {
-    background: #1e1e1e;
-    border-radius: 10px;
-}
-
-#historyList::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #f5c84c, #b98d1f);
-    border-radius: 10px;
-}
-
-#historyList::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #ffd95c, #c79c2c);
-}
-
-.badge-group{
-    display:flex;
-    gap:6px;
-    align-items:center;
-    margin-bottom:6px;
-    flex-wrap:wrap;
+    bossName = bossName.trim();
     
-    align-self:flex-start;
+    console.log("Boss Name:", bossName);
+    console.log("AllLootData Key Exists?:", allLootData[bossName]);
+
+    const popup = document.getElementById("allLootPopup");
+    const grid = document.getElementById("allLootGrid");
+    const title = document.getElementById("allLootTitle");
+
+    console.log("Boss Name:", bossName);
+    console.log("Loot Data:", allLootData[bossName]);
+
+    title.innerText = bossName + " - All Loots";
+    grid.innerHTML = "";
+
+    const lootList = allLootData[bossName] || [];
+
+    lootList.forEach(item => {
+const slot = document.createElement("div");
+slot.className = "loot-slot";
+
+slot.dataset.name = item.name || "";
+slot.dataset.desc = item.desc || "";
+slot.dataset.rarity = item.rarity || "";
+slot.dataset.type = item.type || "";
+slot.dataset.stats = item.stats || "";
+slot.dataset.location = item.location || "";
+
+slot.innerHTML = `<img src="${item.img}" alt="${item.name}">`;
+
+        slot.onclick = () => {
+    openItemPopupFromSlot(slot);
+};
+
+        grid.appendChild(slot);
+    });
+
+    popup.classList.add("active");
+}
+
+function closeAllLoot(event){
+    const popup = document.getElementById("allLootPopup");
+
+    // Only close if clicking background
+    if (!event || event.target === popup) {
+        popup.classList.remove("active");
+    }
+}
+
+// CLOSE ITEM POPUP WHEN CLICKING BACKGROUND
+document.getElementById("itemPopup").addEventListener("click", function(e){
+    if(e.target.id === "itemPopup"){
+        this.classList.remove("active");
+        document.body.style.overflow = "auto";
+    }
+});
+
+
+document.addEventListener("keydown", function(e){
+
+    if(e.key === "Escape"){
+
+        // Close Item Popup
+        const itemPopup = document.getElementById("itemPopup");
+        if(itemPopup.classList.contains("active")){
+            itemPopup.classList.remove("active");
+            document.body.style.overflow = "auto";
+        }
+
+        // Close All Loot Popup
+        const allLootPopup = document.getElementById("allLootPopup");
+        if(allLootPopup.classList.contains("active")){
+            allLootPopup.classList.remove("active");
+            document.body.style.overflow = "auto";
+        }
+    }
+});
+
+
+    
+
+startTimer();
+
+function createWorldBossCard(name, level, image, location){
+
+    const container = document.getElementById("worldBossContent");
+
+
+    const card = document.createElement("div");
+    card.className = "world-boss-card";
+
+    card.innerHTML = `
+        <img src="${image}" class="world-boss-img">
+        
+        <div class="world-boss-name">${name}</div>
+        <div class="world-boss-time">
+            Daily 11:00 – 12:00<br>
+            Daily 20:00 – 21:00
+        </div>
+        <div class="world-boss-location">
+            ${location}
+        </div>
+    `;
+
+    container.appendChild(card);
+}
+
+
+
+const openMapBtn = document.getElementById("openMapBtn");
+const mapOverlay = document.getElementById("mapOverlay");
+const mapImage = document.getElementById("mapImage");
+
+openMapBtn.onclick = () => {
+    mapOverlay.classList.add("active");
+    document.body.style.overflow = "hidden"; 
+};
+
+
+function closeMapOverlay(){
+    mapOverlay.classList.remove("active");
+    document.body.style.overflow = "auto";
+}
+
+
+// ===== RENDER BOSS MARKERS =====
+function renderBossMarkers(imagePath){
+
+    document.querySelectorAll(".boss-marker").forEach(m => m.remove());
+
+    const bossList = mapBossData[imagePath];
+    if(!bossList) return;
+
+    bossList.forEach(boss => {
+
+        const marker = document.createElement("div");
+        marker.className = "boss-marker";
+        marker.style.position = "absolute";
+        marker.style.left = boss.x + "px";
+        marker.style.top = boss.y + "px";
+        marker.style.position = "absolute";
+marker.style.left = boss.x + "px";
+marker.style.top = boss.y + "px";
+marker.style.width = "40px";
+marker.style.height = "40px";
+marker.style.transform = "translate(-50%, -50%)";
+marker.style.cursor = "pointer";
+marker.style.background = "transparent";
+// HOVER TOOLTIP
+marker.addEventListener("mouseenter", function(){
+
+    const tooltip = document.createElement("div");
+    tooltip.className = "map-hover-tooltip";
+    tooltip.innerText = boss.name;
+
+    document.body.appendChild(tooltip);
+
+    const rect = marker.getBoundingClientRect();
+
+    tooltip.style.left = rect.left + rect.width / 2 + "px";
+    tooltip.style.top = rect.top - 10 + "px";
+
+    marker._tooltip = tooltip;
+});
+
+marker.addEventListener("mouseleave", function(){
+    if(marker._tooltip){
+        marker._tooltip.remove();
+        marker._tooltip = null;
+    }
+});
+
+
+
+ marker.onclick = () => {
+
+    //  If world boss → open world boss panel immediately
+if(boss.name === "Ratan" || boss.name === "Parto" || boss.name === "Nedra"){
+
+    mapOverlay.classList.remove("active");
+    document.body.style.overflow = "hidden";
+
+    worldOverlay.classList.add("active");
+
+    //  highlight selected world boss
+    document.querySelectorAll(".world-boss-card").forEach(card => {
+        card.classList.remove("selected");
+    });
+
+    const targetCard = Array.from(document.querySelectorAll(".world-boss-card"))
+        .find(card => card.querySelector(".world-boss-name").innerText === boss.name);
+
+    if(targetCard){
+        targetCard.classList.add("selected");
+    }
+
+    return;
+}
+
+
+
+    const cards = document.querySelectorAll(".card");
+    let found = false;
+
+    cards.forEach(card => {
+
+        const bossName = card.dataset.name;
+
+        if(bossName === boss.name){
+
+            found = true;
+
+            // Close map
+            mapOverlay.classList.remove("active");
+            document.body.style.overflow = "auto";
+
+            // Close other cards
+            document.querySelectorAll(".card").forEach(c => {
+                c.classList.remove("show-details");
+            });
+
+            card.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            setTimeout(() => {
+                card.classList.add("show-details");
+            }, 400);
+        }
+    });
+
+    // If NOT a main boss → show simple popup set by me fixed errors
+   if(!found){
+
+    // If world boss → open world boss panel gets?
+   
+
+    // Normal popup for other stuff
+    const infoBox = document.createElement("div");
+    infoBox.className = "map-info-popup";
+
+    infoBox.innerHTML = `
+        <h3>${boss.name}</h3>
+        ${boss.type ? `<p><strong>Type:</strong> ${boss.type}</p>` : ""}
+        ${boss.level ? `<p><strong>Level:</strong> ${boss.level}</p>` : ""}
+    `;
+
+    document.body.appendChild(infoBox);
+
+    setTimeout(() => {
+        infoBox.classList.add("show");
+    }, 10);
+
+    setTimeout(() => {
+        infoBox.classList.remove("show");
+        setTimeout(() => infoBox.remove(), 300);
+    }, 2500);
+}
+
+};
+
+
+
+        mapInner.appendChild(marker);
+    });
+}
+
+
+const continentTabs = document.querySelectorAll(".continent-tab");
+const sidebar = document.getElementById("mapSidebar" );
+
+function loadContinent(continentKey){
+    sidebar.innerHTML = "";
+
+    const continentData = continents[continentKey];
+
+    Object.keys(continentData).forEach(continentName => {
+
+        // ===== MAIN TITLE (Dien, Lindris etc) =====
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "main-region";
+        titleDiv.innerText = continentName;
+
+        // Container for zones
+        const zoneContainer = document.createElement("div");
+        zoneContainer.className = "zone-container";
+
+        continentData[continentName].forEach(zone => {
+
+    const zoneDiv = document.createElement("div");
+    zoneDiv.className = "sub-region";
+    zoneDiv.innerHTML = `
+        <div>${zone.name}</div>
+        <small style="color:#aaa">${zone.level}</small>
+    `;
+
+    zoneDiv.onclick = () => {
+
+    document.querySelector(".sub-region.active")?.classList.remove("active");
+    zoneDiv.classList.add("active");
+
+    if(zone.img){
+
+        // Start animation
+        mapImage.classList.add("map-animate");
+
+        setTimeout(() => {
+            mapImage.src = zone.img;
+            renderBossMarkers(zone.img);
+
+
+            // Fade back in 
+            mapImage.classList.remove("map-animate");
+        }, 200);
+    }
+};
+
+
+    zoneContainer.appendChild(zoneDiv);
+});
+
+
+
+        
+        // Toggle open/close sumasara kapag clinick
+titleDiv.onclick = () => {
+
+    zoneContainer.classList.toggle("open");
+
+    if(zoneContainer.classList.contains("open")){
+
+        const zones = zoneContainer.querySelectorAll(".sub-region");
+
+        zones.forEach((zone, index) => {
+            zone.style.transitionDelay = (index * 0.08) + "s";
+        });
+
+    } else {
+
+        // reset delay when closing okay?
+        const zones = zoneContainer.querySelectorAll(".sub-region");
+        zones.forEach(zone => {
+            zone.style.transitionDelay = "0s";
+        });
+
+    }
+};
+
+
+        sidebar.appendChild(titleDiv);
+        sidebar.appendChild(zoneContainer);
+    });
+    
 
 }
 
 
 
 
-/* Base badge system */
-.badge,
-.continent-badge{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
+continentTabs.forEach(tab => {
+    tab.onclick = () => {
+        document.querySelector(".continent-tab.active")?.classList.remove("active");
+        tab.classList.add("active");
+        loadContinent(tab.dataset.continent);
+    };
+});
 
-    height:22px;             
-    padding:0 12px;         
-    border-radius:999px;
+// Load default continent
+loadContinent("elsera");
 
-    font-size:10px;
-    font-weight:600;
-    line-height:1;            
 
-    align-self:flex-start;
-    width:auto;
+const worldBossBtn = document.getElementById("worldBossBtn");
+const worldOverlay = document.getElementById("worldBossOverlay");
 
+
+worldBossBtn.onclick = () => {
+
+    // Close Map if open
+    mapOverlay.classList.remove("active");
+
+    // Open World Boss code 14444 easy to ctrl F
+    worldOverlay.classList.add("active");
+
+    document.body.style.overflow = "hidden";
+};
+
+
+
+worldOverlay.onclick = (e) => {
+    if(e.target === worldOverlay){
+        worldOverlay.classList.remove("active");
+        document.body.style.overflow = "auto";
+    }
+    document.querySelectorAll(".world-boss-card").forEach(card => {
+    card.classList.remove("selected");
+});
+
+};
+
+document.getElementById("historyPopup").addEventListener("click", function(e){
+    if(e.target.id === "historyPopup"){
+        this.classList.remove("active");
+        document.body.style.overflow = "auto";
+    }
+});
+
+
+document.getElementById("historyBtn").onclick = function(){
+
+    const popup = document.getElementById("historyPopup");
+    const list = document.getElementById("historyList");
+
+    const deathTab = document.getElementById("tabDeath");
+    const recordedTab = document.getElementById("tabRecorded");
+
+
+    list.innerHTML = "Loading...";
+
+    db.ref("bossHistory").once("value", snap => {
+
+        const data = snap.val();
+        list.innerHTML = "";
+
+        if(!data){
+            list.innerHTML = "<p>No history yet.</p>";
+            return;
+        }
+
+        let allEntries = Object.values(data).filter(entry =>
+            entry &&
+            entry.boss &&
+            entry.deathTime &&
+            entry.recordedAt
+        );
+
+        function renderList(sortType){
+
+            list.innerHTML = "";
+
+            if(sortType === "death"){
+                allEntries.sort((a,b)=> b.deathTime - a.deathTime);
+            } else {
+                allEntries.sort((a,b)=> b.recordedAt - a.recordedAt);
+            }
+
+            allEntries.forEach(entry => {
+
+                const div = document.createElement("div");
+                div.className = "history-entry";
+
+                const zone =
+    selectedOffset === 9 ? "Asia/Seoul" :
+    selectedOffset === 8 ? "Asia/Manila" :
+    "Asia/Bangkok";
+
+const timeValue = sortType === "death"
+    ? entry.deathTime
+    : entry.recordedAt;
+
+div.innerHTML = `
+    <div class="history-boss">
+    ${entry.boss}
+    ${entry.setBy ? `<span style="color:#f5c542; font-size:12px;"> • ${entry.setBy}</span>` : ""}
+</div>
+    <div class="history-time">
+        ${new Date(timeValue).toLocaleString("en-US", {
+            timeZone: zone,
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        })}
+    </div>
+`;
+
+
+
+                list.appendChild(div);
+            });
+        }
+
+        
+        renderList("death");
+
+        deathTab.onclick = function(){
+            deathTab.classList.add("active");
+            recordedTab.classList.remove("active");
+            renderList("death");
+        };
+
+        recordedTab.onclick = function(){
+            recordedTab.classList.add("active");
+            deathTab.classList.remove("active");
+            renderList("recorded");
+        };
+
+    });
+
+    popup.classList.add("active");
+    document.body.style.overflow = "hidden";
+
+};
+
+
+function limitBossHistory(){
+
+    db.ref("bossHistory").once("value", snap => {
+
+        const data = snap.val();
+        if(!data) return;
+
+        const entries = Object.entries(data);
+
+        if(entries.length <= 25) return;
+
+        
+        entries.sort((a,b) => 
+            a[1].recordedAt - b[1].recordedAt
+        );
+
+        const removeCount = entries.length - 25;
+
+        for(let i = 0; i < removeCount; i++){
+            const keyToRemove = entries[i][0];
+            db.ref("bossHistory/" + keyToRemove).remove();
+        }
+
+    });
 }
 
-/* FIXED badge */
-.badge{
-    background:linear-gradient(145deg,#8b5cf6,#7c3aed);
-    color:white;
-
-    box-shadow:
-        0 0 10px rgba(124,58,237,0.5),
-        inset 0 0 4px rgba(255,255,255,0.1);
-
-    letter-spacing:0.4px;
-}
-
-/* KRANSIA badge */
-.continent-badge{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-
-    height:22px;
-    padding:0 12px;
-
-    font-size:10px;      
-    font-weight:600;
-    line-height:1;
-
-    border-radius:999px;
-
-    background:linear-gradient(145deg,#2e1065,#4c1d95);
-    color:#c084fc;
-
-    border:1px solid rgba(139,92,246,0.5);
-
-    box-shadow:0 0 8px rgba(168,85,247,0.35);
-
-    letter-spacing:0.4px;   
-    text-transform:uppercase;
-
-    transform:translateY(-1px);  
-}
-
-.daily-section{
-    padding:20px;
-}
-
-.daily-list{
-    margin-top:15px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
-
-.daily-item{
-    background:#2a313a;
-    padding:12px 16px;
-    border-radius:10px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    border-left:4px solid #4da6ff;
-}
-
-.daily-time{
-    font-weight:bold;
-    color:#4da6ff;
-    margin-right:10px;
-}
-
-.daily-text{
-    flex:1;
-    color:#ddd;
-}
-
-.daily-delete{
-    margin-left:10px;
-    cursor:pointer;
-    color:#ff4d4d;
-    font-size:14px;
-}
-
-.guild-badge{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-
-    height:22px;
-    padding:0 12px;
-
-    font-size:10px;
-    font-weight:600;
-
-    border-radius:999px;
-
-    background:linear-gradient(145deg,#0f172a,#1e40af);
-    color:#60a5fa;
-
-    border:1px solid rgba(96,165,250,0.5);
-    box-shadow:0 0 10px rgba(37,99,235,0.4);
-
-    text-transform:uppercase;
-}
-
-.guild-tag{
-    font-size:12px;
-    font-weight:600;
-    color:#f5c542;
-    gap:4px;
-    display:inline-flex;
-    align-items:center;
-
-    margin-left:6px;
-    text-shadow:0 0 6px rgba(245,200,66,0.6);
-}
-
-.guild-tag .crown{
-    font-size:12px;
-    line-height:1;
-    position:relative;
-    top:-1px; 
-}
-#adminRemoveGuildBtn{
-    padding:6px 12px;
-    font-size:13px;
-    border-radius:8px;
-    width:auto;
-    min-width:120px;
-}
-
-
-/* ===== ASSIST BADGE (PREMIUM STYLE) ===== */
 
 
 
-.boss-img-wrap{
-  position: relative;
-  width: 110px;
-  height: 150px;
-  flex: 0 0 110px;     /* keeps the image column fixed */
-  overflow: hidden;    /* keeps badge inside image */
-}
+// ===== CREATE WORLD BOSSES =====
 
-.boss-img{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-/* Base badge */
-/* Ctrl+F: assist-badge */
-.assist-badge{
-  position:absolute;
-  left:8px;
-  bottom:5px;
+createWorldBossCard("Ratan", 60, "Pictures/World boss/Ratan.png", "Tomb of Time");
+createWorldBossCard("Parto", 85, "Pictures/World boss/Parto.png", "Magic Puppet's Yearning");
+createWorldBossCard("Nedra", 105, "Pictures/World boss/Nedra.png", "Bloodsoaked Plateau");
 
-  display:none;
-  align-items:center;
-  gap:6px;
-
-  padding:2px 5px;
-  border-radius:999px;
-
-  font-size:9px;
-  font-weight:800;
-
-  color:#bff7d4;
-  background: linear-gradient(145deg, rgba(16,185,129,0.22), rgba(15,23,42,0.65));
-  border:1px solid rgba(16,185,129,0.35);
-
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-
-  opacity:0;
-  transform: translateY(2px);
-  transition: all 0.25s ease;
-
-  z-index: 5;
-}
-
-.card.assist-on .assist-badge{
-  display:inline-flex;
-  opacity:1;
-  transform: translateY(0);
-}
-
-/* Add a tiny dot + pulse */
-.assist-badge::before{
-  content:"";
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background: radial-gradient(circle, #34d399 35%, #059669 70%);
-  box-shadow: 0 0 8px rgba(52,211,153,0.75);
-  animation: assistPulse 1.6s ease-in-out infinite;
-}
-
-/* Optional: make the badge text glow a bit */
-.card.assist-on .assist-badge{
-  text-shadow: 0 0 10px rgba(16,185,129,0.25);
-}
-
-/* Nice hover behavior */
-.card.assist-on:hover .assist-badge{
-  filter: brightness(1.08);
-  box-shadow:
-    0 10px 26px rgba(0,0,0,0.5),
-    0 0 26px rgba(16,185,129,0.28);
-}
-
-/* Optional: subtle green border hint on the whole card when Assist ON */
-.card.assist-on{
-  box-shadow:
-    0 0 0 1px rgba(16,185,129,0.18) inset,
-    0 0 18px rgba(16,185,129,0.08);
-}
-
-@keyframes assistPulse{
-  0%   { transform: scale(1);   opacity:0.75; }
-  50%  { transform: scale(1.35);opacity:1; }
-  100% { transform: scale(1);   opacity:0.75; }
-}
-
-/* ===== OUR LOOT BADGE (GLOWING GOLD) ===== */
-
-/* Ctrl+F: claim-badge */
-.claim-badge{
-  position:absolute;
-  left:8px;
-  bottom:5px;    /* 🔥 stacked above Assist */
-
-  display:none;
-  align-items:center;
-  gap:4px;
-
-  padding:2px 5px;
-  border-radius:999px;
-
-  font-size:9px;
-  font-weight:800;
-
-  color:#ffe8a3;
-  background: linear-gradient(145deg, rgba(255,193,7,0.25), rgba(15,23,42,0.65));
-  border:1px solid rgba(255,193,7,0.45);
-
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-
-  opacity:0;
-  transform: translateY(2px);
-  transition: all 0.25s ease;
-
-  z-index: 6;
-}
-
-.card.claim-on .claim-badge{
-  display:inline-flex;
-  opacity:1;
-  transform: translateY(0);
-}
-
-/* Golden pulse dot */
-.claim-badge::before{
-  content:"";
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background: radial-gradient(circle, #ffd54f 35%, #ff9800 70%);
-  box-shadow: 0 0 10px rgba(255,193,7,0.8);
-  animation: claimPulse 1.6s ease-in-out infinite;
-}
-
-/* Glow animation */
-@keyframes claimPulse{
-  0%   { transform: scale(1);   opacity:0.75; }
-  50%  { transform: scale(1.35);opacity:1; }
-  100% { transform: scale(1);   opacity:0.75; }
-}
-
-/* Slight card glow when owned */
-.card.claim-on{
-  box-shadow:
-    0 0 0 1px rgba(255,193,7,0.25) inset,
-    0 0 22px rgba(255,193,7,0.08);
-}
-
-/* Show ONLY ONE */
-.card.claim-on .claim-badge{ display:inline-flex; }
-.card.claim-on .assist-badge{ display:none !important; }
-
-.card.assist-on .assist-badge{ display:inline-flex; }
-.card.assist-on .claim-badge{ display:none !important; }
