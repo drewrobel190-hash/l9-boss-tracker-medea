@@ -1,35 +1,4 @@
-/*
-███╗   ██╗ ██████╗ ████████╗██╗  ██╗██╗███╗   ██╗ ██████╗ 
-████╗  ██║██╔═══██╗╚══██╔══╝██║  ██║██║████╗  ██║██╔════╝ 
-██╔██╗ ██║██║   ██║   ██║   ███████║██║██╔██╗ ██║██║  ███╗
-██║╚██╗██║██║   ██║   ██║   ██╔══██║██║██║╚██╗██║██║   ██║
-██║ ╚████║╚██████╔╝   ██║   ██║  ██║██║██║ ╚████║╚██████╔╝
-╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝ 
 
-████████╗ ██████╗ 
-╚══██╔══╝██╔═══██╗
-   ██║   ██║   ██║
-   ██║   ██║   ██║
-   ██║   ╚██████╔╝
-   ╚═╝    ╚═════╝ 
-
-          
-██╗███╗   ██╗███████╗██████╗ ███████╗ ██████╗████████╗
-██║████╗  ██║██╔════╝██╔══██╗██╔════╝██╔════╝╚══██╔══╝
-██║██╔██╗ ██║███████╗██████╔╝█████╗  ██║        ██║   
-██║██║╚██╗██║╚════██║██╔═══╝ ██╔══╝  ██║        ██║   
-██║██║ ╚████║███████║██║     ███████╗╚██████╗   ██║   
-╚═╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚══════╝ ╚═════╝   ╚═╝   
-
-        
-██╗  ██╗███████╗██████╗ ███████╗
-██║  ██║██╔════╝██╔══██╗██╔════╝
-███████║█████╗  ██████╔╝█████╗  
-██╔══██║██╔══╝  ██╔══██╗██╔══╝  
-██║  ██║███████╗██║  ██║███████╗
-╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝
-
-*/
 console.log("Bosses:", bosses);
 console.log("Loot:", lootData);
 
@@ -58,6 +27,28 @@ db.ref("fixedBossGuilds").on("value", snap => {
     sortBosses(); 
 });
 
+// ===== ASSIST FLAGS (SEPARATE FROM bossTimers) =====
+let assistFlags = {};
+
+db.ref("assistFlags").on("value", snap => {
+  assistFlags = snap.val() || {};
+  updateBadgesUI();
+
+  // if admin modal is open, refresh checkbox state too
+  const layerOpen = document.getElementById("adminLayer")?.classList.contains("active");
+  if(layerOpen && currentAdminBoss){
+    const assistBox = document.getElementById("adminAssist");
+    if(assistBox) assistBox.checked = !!assistFlags[currentAdminBoss] || !!assistFlags[currentAdminBoss.trim()];
+  }
+});
+
+// ===== OUR LOOT FLAGS (SEPARATE) =====
+let claimFlags = {};
+
+db.ref("claimFlags").on("value", snap => {
+  claimFlags = snap.val() || {};
+  updateBadgesUI(); // refresh which badge shows
+});
 
 let cloudData = {};
 let fixedGuildData = {};
@@ -568,11 +559,14 @@ if(lootData[boss.name] && lootData[boss.name].length > 0){
 
 
     card.innerHTML = `
-    <img class="boss-img" src="${boss.image}">
-    <div class="card-content">
-        ${baseContent}
-    </div>
-
+      <div class="boss-img-wrap">
+  <img class="boss-img" src="${boss.image}">
+  <div class="assist-badge" title="Assist is ON">🤝 Assist</div>
+  <div class="claim-badge" title="Our Loot">🎁 Our Loot</div>
+</div>
+  <div class="card-content">
+    ${baseContent}
+  </div>
     <div class="details-overlay">
         <div class="details-box">
 
@@ -614,6 +608,37 @@ if(lootData[boss.name] && lootData[boss.name].length > 0){
     document.getElementById("soonGrid").appendChild(card);
 }
 
+function updateBadgesUI(){
+  document.querySelectorAll(".card").forEach(card => {
+    const raw = card.dataset.name || "";
+    const key = raw.trim();
+
+    const boss = bosses.find(b => (b.name || "").trim() === key);
+
+    const isClaim  = !!claimFlags[raw]  || !!claimFlags[key];
+    const isAssist = !!assistFlags[raw] || !!assistFlags[key];
+
+    // reset
+    card.classList.remove("assist-on", "claim-on");
+
+    // interval badge rule: only show when timer exists
+    const hasTimer = card.classList.contains("has-timer");
+    const isInterval = boss?.type === "interval";
+    const isFixed = boss?.type === "fixed";
+
+    if(isInterval && !hasTimer) return; // keep your old rule for interval
+
+    // fixed bosses can show anytime
+    if(isFixed || hasTimer){
+      // ONLY ONE BADGE (priority: Our Loot > Assist)
+      if(isClaim){
+        card.classList.add("claim-on");
+      } else if(isAssist){
+        card.classList.add("assist-on");
+      }
+    }
+  });
+}
 
 function updateTimers(){
     const now = new Date();
@@ -623,7 +648,7 @@ function updateTimers(){
 
     cards.forEach(card=>{
         const bossName = card.dataset.name;
-        const boss = bosses.find(b => b.name === bossName);
+        const boss = bosses.find(b => (b.name || "").trim() === (bossName || "").trim());
 
 if(!boss){
     card.dataset.spawn = Infinity;
@@ -656,6 +681,7 @@ if(boss.disabled){
     const saved = cloudData[boss.name];
 
 if(!saved){
+    card.classList.remove("has-timer"); // ✅ do not touch assist-on here anymore
     timerEl.classList.remove("ready","warning");
     timerEl.innerText = "Not Set";
     spawnEl.innerText = "";
@@ -671,6 +697,11 @@ if(!saved){
     } else {
         spawn = new Date(saved);
     }
+
+    // ✅ show assist button only when timer exists
+card.classList.add("has-timer");
+
+
 
     // ===== GUILD BADGE SYSTEM PRE =====
     let nameEl = card.querySelector(".name");
@@ -694,8 +725,8 @@ if(guild){
 
 if(boss.type === "fixed"){
 
-    let guild = fixedGuildData[boss.name] || "";
-
+    const key = (boss.name || "").trim();
+    let guild = fixedGuildData[key] || fixedGuildData[boss.name] || "";
     let nameEl = card.querySelector(".name");
     let existingGuildTag = nameEl.querySelector(".guild-tag");
 
@@ -865,7 +896,10 @@ function setDeath(name,hours){
 
     const spawn = death.getTime() + hours * 3600000;
 
-    db.ref("bossTimers/" + name).set(spawn);
+    db.ref("bossTimers/" + name).set({
+  spawn: spawn,
+  guild: "",
+});
 
     triggerTimerAnimation(name);
 }
@@ -950,7 +984,30 @@ const converted = new Date(
 
     document.getElementById("adminLayer").classList.add("active");
     document.body.style.overflow = "hidden";
+
+    // ===== ASSIST + OUR LOOT TOGGLE LOAD =====
+const assistBox = document.getElementById("adminAssist");
+const assistRow = document.getElementById("adminAssistRow");
+
+const claimBox = document.getElementById("adminClaim");
+const claimRow = document.getElementById("adminClaimRow");
+
+// show rows (you can decide rules)
+if(assistRow) assistRow.style.display = "flex";
+if(claimRow) claimRow.style.display = isAdmin ? "flex" : "none";
+
+// checkbox states (trim-safe)
+if(assistBox){
+  assistBox.disabled = !isAdmin;
+  assistBox.checked = !!assistFlags[name] || !!assistFlags[name.trim()];
 }
+
+if(claimBox){
+  claimBox.disabled = !isAdmin;
+  claimBox.checked = !!claimFlags[name] || !!claimFlags[name.trim()];
+}
+}
+
 
 function closeAdminLayer(){
     document.getElementById("adminLayer").classList.remove("active");
@@ -961,11 +1018,21 @@ const setBtn = document.getElementById("adminSetBtn");
 
 if (setBtn) {
     setBtn.onclick = function(){
+        const assistEnabled = document.getElementById("adminAssist")?.checked || false;
+const claimEnabled  = document.getElementById("adminClaim")?.checked || false;
 
         if(!currentAdminBoss){
             alert("No boss selected.");
             return;
         }
+
+        const k = currentAdminBoss.trim();
+
+db.ref("assistFlags/" + k).set(assistEnabled);
+db.ref("claimFlags/" + k).set(claimEnabled);
+
+if(claimEnabled) db.ref("assistFlags/" + k).set(false);
+if(assistEnabled) db.ref("claimFlags/" + k).set(false);
 
         const bossObj = bosses.find(b => b.name === currentAdminBoss);
 
@@ -973,7 +1040,8 @@ if (setBtn) {
         if(bossObj?.type === "fixed"){
 
             const guild = document.getElementById("adminGuild").value || "";
-            db.ref("fixedBossGuilds/" + currentAdminBoss).set(guild);
+            const k = currentAdminBoss.trim();
+            db.ref("fixedBossGuilds/" + k).set(guild);
 
             closeAdminLayer();
             return;
@@ -1000,9 +1068,10 @@ if (setBtn) {
             let spawn = death.getTime() + (currentAdminHours * 3600000);
 
             db.ref("bossTimers/" + currentAdminBoss).set({
-                spawn: spawn,
-                guild: guild
-            });
+    spawn: spawn,
+    guild: guild,
+    
+});
 
             db.ref("bossHistory").push({
                 boss: currentAdminBoss,
@@ -1029,10 +1098,20 @@ const customBtn = document.getElementById("adminCustomBtn");
 if (customBtn) {
     customBtn.onclick = function(){
 
+        const assistEnabled = document.getElementById("adminAssist")?.checked || false;
+const claimEnabled  = document.getElementById("adminClaim")?.checked || false;
+
         if(!currentAdminBoss || currentAdminHours == null){
             alert("No boss selected.");
             return;
         }
+        const k = currentAdminBoss.trim();
+
+db.ref("assistFlags/" + k).set(assistEnabled);
+db.ref("claimFlags/" + k).set(claimEnabled);
+
+if(claimEnabled) db.ref("assistFlags/" + k).set(false);
+if(assistEnabled) db.ref("claimFlags/" + k).set(false);
 
         const dateValue = document.getElementById("adminDate").value;
         const timeValue = document.getElementById("adminCustomTime").value;
@@ -1050,14 +1129,12 @@ if (customBtn) {
 
         const guild = document.getElementById("adminGuild").value || "";
 
+// Ctrl+F: if(guild){
 if(guild){
     db.ref("bossTimers/" + currentAdminBoss).set({
         spawn: spawn,
-        guild: guild
-    });
-} else {
-    db.ref("bossTimers/" + currentAdminBoss).set({
-        spawn: spawn
+        guild: guild,
+        
     });
 }
 
@@ -1090,6 +1167,9 @@ if (resetBtn) {
             return;
         }
 
+        const k = currentAdminBoss.trim();
+db.ref("assistFlags/" + k).set(false);
+db.ref("claimFlags/" + k).set(false);
         if(!confirm("Reset this?")){
             return;
         }
@@ -1097,7 +1177,7 @@ if (resetBtn) {
         const bossObj = bosses.find(b => b.name === currentAdminBoss);
 
         if(bossObj?.type === "fixed"){
-            db.ref("fixedBossGuilds/" + currentAdminBoss).remove();
+            db.ref("fixedBossGuilds/" + currentAdminBoss.trim()).remove();
         } else {
             db.ref("bossTimers/" + currentAdminBoss).remove();
         }
@@ -1120,7 +1200,8 @@ if(removeGuildBtn){
         const bossObj = bosses.find(b => b.name === currentAdminBoss);
 
         if(bossObj?.type === "fixed"){
-            db.ref("fixedBossGuilds/" + currentAdminBoss).remove();
+            const k = currentAdminBoss.trim();
+            db.ref("fixedBossGuilds/" + k).set(guild);
         } else {
             db.ref("bossTimers/" + currentAdminBoss + "/guild").remove();
         }
@@ -1142,6 +1223,10 @@ console.log("Bosses:", bosses);
 console.log("LootData:", lootData);
 
 bosses.forEach(createCard);
+updateBadgesUI();
+
+
+
 document.addEventListener("click", function(e){
 
     if(e.target.closest(".loot-slot")){
@@ -1183,16 +1268,14 @@ document.addEventListener("click", function(e){
 applyAdminMode();
 
 function applyAdminMode(){
-    const controls = document.querySelectorAll(".admin-controls");
-    controls.forEach(control=>{
-        control.style.display = isAdmin ? "block" : "none";
-    });
+  document.querySelectorAll(".admin-controls").forEach(control=>{
+    control.style.display = isAdmin ? "block" : "none";
+  });
 
-    const historyBtn = document.getElementById("historyBtn");
-    if(historyBtn){
-        historyBtn.style.display = "inline-block";
-    }
+  const historyBtn = document.getElementById("historyBtn");
+  if(historyBtn) historyBtn.style.display = "inline-block";
 }
+
 
 
 
