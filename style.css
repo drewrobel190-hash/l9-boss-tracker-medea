@@ -34,7 +34,7 @@ body::before{
     pointer-events: none;
     transition: opacity 0.3s ease;
 
-    z-index: 20000; /* 🔥 FORCE ABOVE EVERYTHING */
+    z-index: 20000; 
 }
 
 
@@ -77,7 +77,7 @@ body::before{
 
 
 .select-wrapper {
-    position: relative;  /* ADD THIS */
+    position: relative;  
     display: inline-block;
 }
 
@@ -230,7 +230,7 @@ select{
     .card {
         width: 100%;
         position: relative;
-        z-index: 1; /* default */
+        z-index: 1; 
     }
 
     .boss-grid {
@@ -271,7 +271,7 @@ header{
 
 .card{
     position:relative;
-    display:flex; /* keep original horizontal layout */
+    display:flex; 
     background:#2a313a;
     border-radius:12px;
     overflow: visible;
@@ -341,7 +341,7 @@ header{
     z-index: 2;
 }
 .card.menu-active {
-    z-index: 50;  /* higher than other cards */
+    z-index: 50; 
 
     border-left: 4px solid transparent;
     box-shadow: none;
@@ -385,16 +385,16 @@ header{
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:center;   /* 👈 center it */
-    padding-top:0;            /* 👈 remove this */
+    justify-content:center;   
+    padding-top:0;            
 }
 
 
 
 .details-box h3{
     margin-bottom:18px;
-    margin:0;            /* REMOVE default spacing */
-    padding:0;           /* optional */
+    margin:0;
+    padding:0;           
     border:none;
 }
 
@@ -511,7 +511,7 @@ header{
     display:inline-block;
     min-width:110px;
     flex-shrink:0;
-    white-space:nowrap;   /* prevents "Locatio n:" break */
+    white-space:nowrap;   
 }
 
 
@@ -519,7 +519,7 @@ header{
 
 
 .loot-grid{
-    display:flex; /* same horizontal layout like your image */
+    display:flex; 
     gap:12px;
     justify-content:center;
     margin-top:20px; 
@@ -589,7 +589,7 @@ header{
 .spawn{ font-size:12px; color:#aaa; }
 
 .fixed{
-    font-size:10px;      /* smaller than spawn */
+    font-size:10px;     
     color:#888;
     letter-spacing:0.5px;
     opacity:0.8;
@@ -680,7 +680,7 @@ button{
 }
 
 .select-wrapper select {
-    padding-right: 30px; /* space for arrow */
+    padding-right: 30px; 
 }
 
 .select-wrapper::after {
@@ -701,7 +701,7 @@ button{
     color:#ff9800;
 }
 
-/* 🔥 CLICK EXPAND DETAILS */
+/* CLICK EXPAND DETAILS */
 
 .boss-details{
     max-height:0;
@@ -798,7 +798,7 @@ button{
     opacity:0;
     pointer-events:none;
     transition:opacity 0.25s ease;
-    z-index: 100001;   /* 🔥 HIGHER THAN ALL LOOT */
+    z-index: 100001;   
 }
 
 
@@ -815,7 +815,7 @@ button{
     text-align:left;
     box-shadow:0 0 20px rgba(0,0,0,0.6);
     animation:fadeIn 0.2s ease;
-    overflow: visible; /* ADD THIS */
+    overflow: visible; 
 }
 
 
@@ -949,7 +949,7 @@ button{
         0 0 14px rgba(255, 140, 0, 0.6),
         0 0 25px rgba(255, 100, 0, 0.5);
 
-    animation: mythicRadiant 3s linear infinite; /* SAME as mythic */
+    animation: mythicRadiant 3s linear infinite; 
 }
 
 
@@ -977,7 +977,7 @@ button{
 
 
 .name-epic {
-    color: #c084fc; /* soft radiant purple */
+    color: #c084fc; 
 
     text-shadow:
         0 0 4px rgba(192, 132, 252, 0.5),
@@ -1054,7 +1054,7 @@ button{
     overflow-y: auto;
     margin-top: 10px;
     border-top: 1px solid rgba(255,255,255,0.15);
-    padding-top: 0;   /* remove extra top space */
+    padding-top: 0;   
     font-size: 13px;
 }
 
@@ -1290,12 +1290,12 @@ body::-webkit-scrollbar-thumb:hover {
     padding:35px 45px;
     border-radius:18px;
 
-    width:auto;                 /* remove fixed width */
-    min-width:600px;            /* keeps it wide enough */
+    width:auto;                
+    min-width:600px;            
     max-width:800px;
 
-    height:auto;                /* auto height */
-    min-height:unset;           /* remove forced height */
+    height:auto;              
+    min-height:unset;          
 
     box-shadow:0 0 40px rgba(0,0,0,0.7);
 }
@@ -1441,7 +1441,7 @@ body::-webkit-scrollbar-thumb:hover {
         0 0 25px rgba(77,166,255,0.25),
         0 10px 30px rgba(0,0,0,0.6);
 
-    transform: translateY(-8px);   /* FLOAT UP */
+    transform: translateY(-8px);   
     transition: transform 0.3s ease;
 }
 
@@ -1557,7 +1557,7 @@ body::-webkit-scrollbar-thumb:hover {
     pointer-events:none;
     transition:0.3s ease;
 
-    z-index:1000;   /* lower this */
+    z-index:1000;  
 }
 
 
@@ -1590,7 +1590,7 @@ body::-webkit-scrollbar-thumb:hover {
     display:flex;
     flex-wrap:wrap;
     gap:15px;
-    justify-content:flex-start; /* NOT center */
+    justify-content:flex-start; 
 }
 
 
@@ -1641,7 +1641,7 @@ body::-webkit-scrollbar-thumb:hover {
     background:#111;
 
     display:flex;
-    flex-direction:column;   /* ✅ STACK VERTICALLY */
+    flex-direction:column;  
 
     border-radius:20px;
     overflow:visible;
@@ -1707,13 +1707,13 @@ body::-webkit-scrollbar-thumb:hover {
 
 .map-topbar{
     display:flex;
-    justify-content:flex-start;   /* ← move left */
+    justify-content:flex-start;   
     align-items:center;
 
     gap:30px;
 
     background:#0f1418;
-    padding:15px 25px;            /* ← add left padding */
+    padding:15px 25px;            
     border-bottom:1px solid #222;
 }
 
@@ -1901,7 +1901,7 @@ body::-webkit-scrollbar-thumb:hover {
 
 .map-body{
     display:flex;
-    flex:1;       /* fill remaining space */
+    flex:1;       
     min-height:0;  
 }
 
@@ -1938,7 +1938,7 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .zone-container.open{
-    max-height: 1000px; /* big enough */
+    max-height: 1000px; 
     opacity: 1;
     transform: translateY(0);
 }
@@ -2041,7 +2041,7 @@ body::-webkit-scrollbar-thumb:hover {
 
 .map-sticky-bar{
     position: sticky;
-    top: 90px; /* adjust based on header height */
+    top: 90px; 
     z-index: 4000;
 
     padding: 10px 20px;
@@ -2258,7 +2258,7 @@ body::-webkit-scrollbar-thumb:hover {
         justify-content: center;
     }
 
-    /* Hide the 4th loot */
+    /* Hide the 4th loot for mobile gets? */
     .loot-grid .loot-slot:nth-child(4) {
         display: none;
     }
@@ -2270,8 +2270,8 @@ body::-webkit-scrollbar-thumb:hover {
     .cp-loot-grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
-        column-gap: 8px;   /* horizontal spacing */
-        row-gap: 0;        /* remove vertical spacing */
+        column-gap: 8px;   
+        row-gap: 0;        
     }
 
     .cp-loot-grid .loot-slot {
@@ -2285,9 +2285,9 @@ body::-webkit-scrollbar-thumb:hover {
         
         grid-template-columns: repeat(5, 1fr);
 
-        width: 80%;            /* 🔥 shrink the whole dark blue box */
+        width: 80%;            
         max-width: 80%;
-        margin: 0 auto;        /* center it */
+        margin: 0 auto;        
         padding: 20px;
         border-radius: 20px;
         
@@ -2297,7 +2297,7 @@ body::-webkit-scrollbar-thumb:hover {
 
 @media (max-width: 768px) {
     .all-loot-box {
-        padding: 15px 0;   /* remove horizontal padding */
+        padding: 15px 0;  
     }
 }
 
@@ -2420,13 +2420,13 @@ body::-webkit-scrollbar-thumb:hover {
     align-items:center;
     justify-content:center;
 
-    height:22px;              /* 🔥 fixed height */
-    padding:0 12px;           /* remove vertical padding */
+    height:22px;             
+    padding:0 12px;         
     border-radius:999px;
 
     font-size:10px;
     font-weight:600;
-    line-height:1;            /* 🔥 critical */
+    line-height:1;            
 
     align-self:flex-start;
     width:auto;
@@ -2454,7 +2454,7 @@ body::-webkit-scrollbar-thumb:hover {
     height:22px;
     padding:0 12px;
 
-    font-size:10px;      /* 🔥 match badge exactly */
+    font-size:10px;      
     font-weight:600;
     line-height:1;
 
@@ -2467,10 +2467,10 @@ body::-webkit-scrollbar-thumb:hover {
 
     box-shadow:0 0 8px rgba(168,85,247,0.35);
 
-    letter-spacing:0.4px;   /* 🔥 match .badge */
+    letter-spacing:0.4px;   
     text-transform:uppercase;
 
-    transform:translateY(-1px);  /* 🔥 optical correction */
+    transform:translateY(-1px);  
 }
 
 .daily-section{
@@ -2550,7 +2550,7 @@ body::-webkit-scrollbar-thumb:hover {
     font-size:12px;
     line-height:1;
     position:relative;
-    top:-1px; /* tiny vertical correction */
+    top:-1px; 
 }
 #adminRemoveGuildBtn{
     padding:6px 12px;
@@ -2559,3 +2559,166 @@ body::-webkit-scrollbar-thumb:hover {
     width:auto;
     min-width:120px;
 }
+
+
+/* ===== ASSIST BADGE (PREMIUM STYLE) ===== */
+
+
+
+.boss-img-wrap{
+  position: relative;
+  width: 110px;
+  height: 150px;
+  flex: 0 0 110px;     /* keeps the image column fixed */
+  overflow: hidden;    /* keeps badge inside image */
+}
+
+.boss-img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Base badge */
+/* Ctrl+F: assist-badge */
+.assist-badge{
+  position:absolute;
+  left:8px;
+  bottom:5px;
+
+  display:none;
+  align-items:center;
+  gap:6px;
+
+  padding:2px 5px;
+  border-radius:999px;
+
+  font-size:9px;
+  font-weight:800;
+
+  color:#bff7d4;
+  background: linear-gradient(145deg, rgba(16,185,129,0.22), rgba(15,23,42,0.65));
+  border:1px solid rgba(16,185,129,0.35);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  opacity:0;
+  transform: translateY(2px);
+  transition: all 0.25s ease;
+
+  z-index: 5;
+}
+
+.card.assist-on .assist-badge{
+  display:inline-flex;
+  opacity:1;
+  transform: translateY(0);
+}
+
+/* Add a tiny dot + pulse */
+.assist-badge::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background: radial-gradient(circle, #34d399 35%, #059669 70%);
+  box-shadow: 0 0 8px rgba(52,211,153,0.75);
+  animation: assistPulse 1.6s ease-in-out infinite;
+}
+
+/* Optional: make the badge text glow a bit */
+.card.assist-on .assist-badge{
+  text-shadow: 0 0 10px rgba(16,185,129,0.25);
+}
+
+/* Nice hover behavior */
+.card.assist-on:hover .assist-badge{
+  filter: brightness(1.08);
+  box-shadow:
+    0 10px 26px rgba(0,0,0,0.5),
+    0 0 26px rgba(16,185,129,0.28);
+}
+
+/* Optional: subtle green border hint on the whole card when Assist ON */
+.card.assist-on{
+  box-shadow:
+    0 0 0 1px rgba(16,185,129,0.18) inset,
+    0 0 18px rgba(16,185,129,0.08);
+}
+
+@keyframes assistPulse{
+  0%   { transform: scale(1);   opacity:0.75; }
+  50%  { transform: scale(1.35);opacity:1; }
+  100% { transform: scale(1);   opacity:0.75; }
+}
+
+/* ===== OUR LOOT BADGE (GLOWING GOLD) ===== */
+
+/* Ctrl+F: claim-badge */
+.claim-badge{
+  position:absolute;
+  left:8px;
+  bottom:5px;    /* 🔥 stacked above Assist */
+
+  display:none;
+  align-items:center;
+  gap:4px;
+
+  padding:2px 5px;
+  border-radius:999px;
+
+  font-size:9px;
+  font-weight:800;
+
+  color:#ffe8a3;
+  background: linear-gradient(145deg, rgba(255,193,7,0.25), rgba(15,23,42,0.65));
+  border:1px solid rgba(255,193,7,0.45);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  opacity:0;
+  transform: translateY(2px);
+  transition: all 0.25s ease;
+
+  z-index: 6;
+}
+
+.card.claim-on .claim-badge{
+  display:inline-flex;
+  opacity:1;
+  transform: translateY(0);
+}
+
+/* Golden pulse dot */
+.claim-badge::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background: radial-gradient(circle, #ffd54f 35%, #ff9800 70%);
+  box-shadow: 0 0 10px rgba(255,193,7,0.8);
+  animation: claimPulse 1.6s ease-in-out infinite;
+}
+
+/* Glow animation */
+@keyframes claimPulse{
+  0%   { transform: scale(1);   opacity:0.75; }
+  50%  { transform: scale(1.35);opacity:1; }
+  100% { transform: scale(1);   opacity:0.75; }
+}
+
+/* Slight card glow when owned */
+.card.claim-on{
+  box-shadow:
+    0 0 0 1px rgba(255,193,7,0.25) inset,
+    0 0 22px rgba(255,193,7,0.08);
+}
+
+/* Show ONLY ONE */
+.card.claim-on .claim-badge{ display:inline-flex; }
+.card.claim-on .assist-badge{ display:none !important; }
+
+.card.assist-on .assist-badge{ display:inline-flex; }
+.card.assist-on .claim-badge{ display:none !important; }
