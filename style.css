@@ -2569,8 +2569,8 @@ body::-webkit-scrollbar-thumb:hover {
   position: relative;
   width: 110px;
   height: 150px;
-  flex: 0 0 110px;     /* keeps the image column fixed */
-  overflow: hidden;    /* keeps badge inside image */
+  flex: 0 0 110px;     
+  overflow: hidden;   
 }
 
 .boss-img{
@@ -2579,8 +2579,7 @@ body::-webkit-scrollbar-thumb:hover {
   object-fit: cover;
   display: block;
 }
-/* Base badge */
-/* Ctrl+F: assist-badge */
+
 .assist-badge{
   position:absolute;
   left:8px;
@@ -2616,7 +2615,7 @@ body::-webkit-scrollbar-thumb:hover {
   transform: translateY(0);
 }
 
-/* Add a tiny dot + pulse */
+
 .assist-badge::before{
   content:"";
   width:6px;
@@ -2627,12 +2626,12 @@ body::-webkit-scrollbar-thumb:hover {
   animation: assistPulse 1.6s ease-in-out infinite;
 }
 
-/* Optional: make the badge text glow a bit */
+
 .card.assist-on .assist-badge{
   text-shadow: 0 0 10px rgba(16,185,129,0.25);
 }
 
-/* Nice hover behavior */
+
 .card.assist-on:hover .assist-badge{
   filter: brightness(1.08);
   box-shadow:
@@ -2640,7 +2639,7 @@ body::-webkit-scrollbar-thumb:hover {
     0 0 26px rgba(16,185,129,0.28);
 }
 
-/* Optional: subtle green border hint on the whole card when Assist ON */
+
 .card.assist-on{
   box-shadow:
     0 0 0 1px rgba(16,185,129,0.18) inset,
@@ -2655,11 +2654,10 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* ===== OUR LOOT BADGE (GLOWING GOLD) ===== */
 
-/* Ctrl+F: claim-badge */
 .claim-badge{
   position:absolute;
   left:8px;
-  bottom:5px;    /* 🔥 stacked above Assist */
+  bottom:5px;    
 
   display:none;
   align-items:center;
@@ -2691,7 +2689,6 @@ body::-webkit-scrollbar-thumb:hover {
   transform: translateY(0);
 }
 
-/* Golden pulse dot */
 .claim-badge::before{
   content:"";
   width:6px;
@@ -2702,23 +2699,28 @@ body::-webkit-scrollbar-thumb:hover {
   animation: claimPulse 1.6s ease-in-out infinite;
 }
 
-/* Glow animation */
+
 @keyframes claimPulse{
   0%   { transform: scale(1);   opacity:0.75; }
   50%  { transform: scale(1.35);opacity:1; }
   100% { transform: scale(1);   opacity:0.75; }
 }
 
-/* Slight card glow when owned */
+
 .card.claim-on{
   box-shadow:
     0 0 0 1px rgba(255,193,7,0.25) inset,
     0 0 22px rgba(255,193,7,0.08);
 }
 
-/* Show ONLY ONE */
+.card.show-details .assist-badge,
+.card.show-details .claim-badge{
+  display: none !important;
+}
+
 .card.claim-on .claim-badge{ display:inline-flex; }
 .card.claim-on .assist-badge{ display:none !important; }
 
 .card.assist-on .assist-badge{ display:inline-flex; }
 .card.assist-on .claim-badge{ display:none !important; }
+
