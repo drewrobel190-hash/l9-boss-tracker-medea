@@ -495,7 +495,7 @@ function createCard(boss){
 </div>
 
     <div class="name">${boss.name}</div>
-    <div class="timer">No Contest</div>
+    <div class="timer">Disabled</div>
     <div class="spawn">
         ${boss.schedule.map(s=>{
             const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -659,7 +659,7 @@ if(boss.disabled){
     const timerEl = card.querySelector(".timer");
     const spawnEl = card.querySelector(".spawn");
 
-    timerEl.innerText = "No Contest";
+    timerEl.innerText = "Disabled";
     spawnEl.innerHTML = boss.schedule.map(s=>{
         const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
         return days[s.day] + " " + s.time;
