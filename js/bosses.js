@@ -115,6 +115,7 @@ schedule:[{day:1,time:"11:30"},{day:4,time:"19:00"}],
 image:"Pictures/Clemantis.png",
 info: "Level 70 Field Boss",
 location: "Corrupted Basin > White Witch Cradle",
+disabled: true  
 },
 
 { name:"Saphirus", type:"fixed",
@@ -122,27 +123,31 @@ schedule:[{day:0,time:"17:00"},{day:2,time:"11:30"}],
 image:"Pictures/Saphirus.png",
 info: "Level 80 Field Boss",
 location: "Cresendent Lake > Moonlight Shackle",
+disabled: true,
 },
 
 { name:"Neutro", type:"fixed",
 schedule:[{day:2,time:"19:00"},{day:4,time:"11:30"}],
 image:"Pictures/Neutro.png",
 info: "Level 80 Field Boss",
-location: "Desert of the Screaming > Battlefield of Love and Hatred"
+location: "Desert of the Screaming > Battlefield of Love and Hatred",
+disabled: true
 },
 
 { name:"Thymele", type:"fixed",
 schedule:[{day:1,time:"19:00"},{day:3,time:"11:30"}],
 image:"Pictures/Thymele.png",
 info: "Level 70 Field Boss",
-location: "Corrupted Basin > Thymele's Cave"
+location: "Corrupted Basin > Thymele's Cave",
+disabled: true,
 },
 
 { name:"Milavy", type:"fixed",
 schedule:[{day:6,time:"15:00"}],
 image:"Pictures/Milavy.png",
 info: "Level 70 Field Boss",
-location: "Corrupted Basin > Milavy's Cave"
+location: "Corrupted Basin > Milavy's Cave",
+disabled: false
 },
 
 { name:"Ringor", type:"fixed",
