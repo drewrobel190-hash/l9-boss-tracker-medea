@@ -192,7 +192,8 @@ schedule:[
 ],
 image:"Pictures/Libitina.png",
 info: "Level 70 Field Boss",
-location: "Corrupted Basin > Benji's Cave"
+location: "Corrupted Basin > Benji's Cave",
+disabled: true,
 },
 
 { name:"Rakajeth", type:"fixed",
@@ -334,3 +335,4 @@ image:"Pictures/Tumier.png"},
      // Thursday
       // Friday
        // Saturday
+
