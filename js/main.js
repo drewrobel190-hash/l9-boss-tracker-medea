@@ -791,8 +791,78 @@ if (remaining > ALERT_MS) {
 }
 
 if (remaining <= ALERT_MS && !discordAlertsSent[key]) {
+
   console.log("🔴 SENDING ALERT NOW:", boss.name, "remaining(ms)=", remaining);
-  sendDiscordAlert(`<@&1463810381456609360> ⚔️ ${boss.name} spawning in 15 minutes!`);
+
+  const messages = [
+    `⚔️ ${boss.name} spawning in 15 minutes!`,
+    `⚔️ Let's go guys ${boss.name} appears in 15 minutes!`,
+    `⚔️ Sup ${boss.name}! will spawn in 15 minutes.`,
+    `⚔️ ${boss.name} approaches... 15 minutes left.`,
+    `⚔️ ${boss.name} 15 minuto's`,
+    `⚔️ ${boss.name} incoming in 15 minutes`,
+    `⚔️ Go on ${boss.name} it will spawn at 15 minutes`,
+    `⚔️ ${boss.name} in 15 minutes`,
+    `⚔️ ${boss.name} fifteen minutes`,
+    `⚔️ ${boss.name} 15m`,
+    `⚔️ Hai im here to remind you that ${boss.name} will spawn at 15 minutes`,
+    `⚔️ ${boss.name} Go go`,
+    `⚔️ Hey this ${boss.name} will spawn soon`,
+    `⚔️ What's up ${boss.name} incoming`,
+    `⚔️ Im tired but ${boss.name} will spawn in 15minutes`,
+    `⚔️ ${boss.name} guys`,
+    `⚔️ ${boss.name} Ping!`,
+    `⚔️ ${boss.name} Boss pinggggggggggggg`,
+    `⚔️ Kamosta im here to tell ${boss.name} will spawn at 15 minutes`,
+    `⚔️ ${boss.name} hmm`,
+    `⚔️ ZZZ ${boss.name} will spawn BRO!`,
+    `⚔️ Let's go ${boss.name} in 15 minutes`,
+    `⚔️ Reminder ${boss.name} in 15m`,
+    `⚔️ This ${boss.name} Will show up in fifteen Minutes`,
+    `⚔️ Reminding you guys ${boss.name} will spawn`,
+    `⚔️ ${boss.name} wake up guys`,
+`⚔️ ${boss.name} is coming`,
+`⚔️ ${boss.name} soon`,
+`⚔️ ${boss.name} field boss time in 15 minutes`,
+`⚔️ ${boss.name} prepare`,
+`⚔️ ${boss.name} let's go`,
+`⚔️ ${boss.name} ready your thing haha`,
+`⚔️ ${boss.name} don't be late`,
+`⚔️ ${boss.name} get ready`,
+`⚔️ ${boss.name} gather up`,
+`⚔️ ${boss.name} incoming boss`,
+`⚔️ ${boss.name} is almost here`,
+`⚔️ ${boss.name} come on boss`,
+`⚔️ ${boss.name} ready guys`,
+`⚔️ ${boss.name} soon spawn`,
+`⚔️ ${boss.name} let's hunt`,
+`⚔️ ${boss.name} boss soon`,
+`⚔️ ${boss.name} spawn soon`,
+`⚔️ ${boss.name} don't miss`,
+`⚔️ ${boss.name} 15minutesssss`,
+`⚔️ ${boss.name} wake up guild`,
+`⚔️ ${boss.name} hurry up`,
+`⚔️ ${boss.name} boss incoming`,
+`⚔️ ${boss.name} boss alert`,
+`⚔️ ${boss.name} fight soon`,
+`⚔️ ${boss.name} get ready guys`,
+`⚔️ ${boss.name} gather pls`,
+`⚔️ ${boss.name} ping ping`,
+`⚔️ ${boss.name} wake up sleepy heads`,
+`⚔️ ${boss.name} stop afk`,
+`⚔️ ${boss.name} time to fight`,
+`⚔️ ${boss.name} incoming field boss`,
+`⚔️ ${boss.name} don't forget`,
+`⚔️ ${boss.name} AztecX4 assemble`,
+`⚔️ ${boss.name} gear up`,
+`⚔️ ${boss.name} battle soon`,
+    
+  ];
+
+  const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
+  sendDiscordAlert(`<@&1463810381456609360> ${randomMessage}`);
+
   discordAlertsSent[key] = true;
 }
             timerEl.innerText = formatTime(remaining);
