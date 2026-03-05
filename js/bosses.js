@@ -210,7 +210,7 @@ location: "Corrupted Basin > Benji's Cave"
   name: "Icaruthia",
   type: "fixed",
   continent: "Kransia",
-  disabled: false,
+  disabled: true,
   schedule: [
     { day: 2, time: "21:00" },
     { day: 5, time: "21:00" }
@@ -222,7 +222,7 @@ location: "Corrupted Basin > Benji's Cave"
   name: "Motti",
   type: "fixed",
   continent: "Kransia",
-  disabled: false,
+  disabled: true,
   schedule: [
     { day: 3, time: "19:00" },  // Wednesday
     { day: 6, time: "19:00" }   // Saturday
@@ -234,7 +234,7 @@ location: "Corrupted Basin > Benji's Cave"
   name: "Nevaeh",
   type: "fixed",
   continent: "Kransia",
-  disabled: false,
+  disabled: true,
   schedule: [
     { day: 0, time: "22:00" }   // Sunday
   ],
@@ -335,4 +335,5 @@ image:"Pictures/Tumier.png"},
      // Thursday
       // Friday
        // Saturday
+
 
