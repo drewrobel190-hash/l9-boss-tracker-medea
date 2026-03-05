@@ -60,6 +60,32 @@ let discordAlertsSent = {};
 function bossKey(name){
   return (name || "").trim();
 }
+
+function fbSafeKey(str){
+  // Firebase RTDB keys cannot contain: . # $ [ ] /
+  return (str || "").trim().replace(/[.#$[\]\/]/g, "_");
+}
+
+// Claim a "send slot" in Firebase so only ONE client can send per boss per spawnTime.
+function claimDiscordAlertOnce(bossName, spawnMs, onClaimed){
+  const bossK = fbSafeKey(bossName);
+  const path = `discordAlertLocks/${bossK}/${spawnMs}`;
+
+  db.ref(path).transaction(current => {
+    if (current) return; // already claimed -> abort
+    return {
+      sentAt: firebase.database.ServerValue.TIMESTAMP
+    };
+  }, (error, committed) => {
+    if (error) {
+      console.error("❌ claim transaction error:", error);
+      return;
+    }
+    if (committed) {
+      onClaimed(); // ✅ only the winner runs this
+    }
+  });
+}
 function sendDiscordAlert(message) {
   fetch("https://l9-discord-bot-production.up.railway.app/alert", {
     method: "POST",
@@ -780,10 +806,10 @@ if(!spawn){
    
     const key = bossKey(boss.name);
 
-const ALERT_MS = 15 * 60 * 1000; // 900000
+const ALERT_MS = 20 * 60 * 1000; // 1200000
 
 if (remaining <= ALERT_MS + 5000 && remaining >= ALERT_MS - 5000) {
-  console.log("🟡 Near 15min:", boss.name, "remaining(ms)=", remaining);
+  console.log("🟡 Near 20min:", boss.name, "remaining(ms)=", remaining);
 }
 
 if (remaining > ALERT_MS) {
@@ -792,32 +818,36 @@ if (remaining > ALERT_MS) {
 
 if (remaining <= ALERT_MS && !discordAlertsSent[key]) {
 
-  console.log("🔴 SENDING ALERT NOW:", boss.name, "remaining(ms)=", remaining);
+  const spawnMs = spawn.getTime();
 
-  const messages = [
-    `⚔️ ${boss.name} spawning in 15 minutes!`,
-    `⚔️ Let's go guys ${boss.name} appears in 15 minutes!`,
-    `⚔️ Sup ${boss.name}! will spawn in 15 minutes.`,
-    `⚔️ ${boss.name} approaches... 15 minutes left.`,
+  claimDiscordAlertOnce(boss.name, spawnMs, () => {
+
+    console.log("🔴 SENDING ALERT NOW:", boss.name, "remaining(ms)=", remaining);
+
+    const messages = [
+    `⚔️ ${boss.name} spawning in 20 minutes!`,
+    `⚔️ Let's go guys ${boss.name} appears in 20 minutes!`,
+    `⚔️ Sup ${boss.name}! will spawn in 20 minutes.`,
+    `⚔️ ${boss.name} approaches... 20 minutes left.`,
     `⚔️ ${boss.name} 15 minuto's`,
-    `⚔️ ${boss.name} incoming in 15 minutes`,
-    `⚔️ Go on ${boss.name} it will spawn at 15 minutes`,
+    `⚔️ ${boss.name} incoming in 20 minutes`,
+    `⚔️ Go on ${boss.name} it will spawn at 20 minutes`,
     `⚔️ ${boss.name} in 15 minutes`,
-    `⚔️ ${boss.name} fifteen minutes`,
-    `⚔️ ${boss.name} 15m`,
-    `⚔️ Hai im here to remind you that ${boss.name} will spawn at 15 minutes`,
+    `⚔️ ${boss.name} twenty minutes`,
+    `⚔️ ${boss.name} 20m`,
+    `⚔️ Hai im here to remind you that ${boss.name} will spawn at 20 minutes`,
     `⚔️ ${boss.name} Go go`,
     `⚔️ Hey this ${boss.name} will spawn soon`,
     `⚔️ What's up ${boss.name} incoming`,
-    `⚔️ Im tired but ${boss.name} will spawn in 15minutes`,
+    `⚔️ Im tired but ${boss.name} will spawn in 20minutes`,
     `⚔️ ${boss.name} guys`,
     `⚔️ ${boss.name} Ping!`,
     `⚔️ ${boss.name} Boss pinggggggggggggg`,
-    `⚔️ Kamosta im here to tell ${boss.name} will spawn at 15 minutes`,
+    `⚔️ Kamosta im here to tell ${boss.name} will spawn at 20 minutes`,
     `⚔️ ${boss.name} hmm`,
     `⚔️ ZZZ ${boss.name} will spawn BRO!`,
-    `⚔️ Let's go ${boss.name} in 15 minutes`,
-    `⚔️ Reminder ${boss.name} in 15m`,
+    `⚔️ Let's go ${boss.name} in 20 minutes`,
+    `⚔️ Reminder ${boss.name} in 20m`,
     `⚔️ This ${boss.name} Will show up in fifteen Minutes`,
     `⚔️ Reminding you guys ${boss.name} will spawn`,
     `⚔️ ${boss.name} wake up guys`,
@@ -839,7 +869,7 @@ if (remaining <= ALERT_MS && !discordAlertsSent[key]) {
 `⚔️ ${boss.name} boss soon`,
 `⚔️ ${boss.name} spawn soon`,
 `⚔️ ${boss.name} don't miss`,
-`⚔️ ${boss.name} 15minutesssss`,
+`⚔️ ${boss.name} 20minutesssss`,
 `⚔️ ${boss.name} wake up guild`,
 `⚔️ ${boss.name} hurry up`,
 `⚔️ ${boss.name} boss incoming`,
@@ -856,14 +886,15 @@ if (remaining <= ALERT_MS && !discordAlertsSent[key]) {
 `⚔️ ${boss.name} AztecX4 assemble`,
 `⚔️ ${boss.name} gear up`,
 `⚔️ ${boss.name} battle soon`,
-    
-  ];
+    ];
 
-  const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
 
-  sendDiscordAlert(`<@&1463810381456609360> ${randomMessage}`);
+    sendDiscordAlert(`<@&1463810381456609360> ${randomMessage}`);
+    discordAlertsSent[key] = true;
+  });
 
-  discordAlertsSent[key] = true;
+  
 }
             timerEl.innerText = formatTime(remaining);
 
