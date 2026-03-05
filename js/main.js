@@ -57,7 +57,19 @@ let isAdmin = false;
 let expandedCard = null;
 
 let discordAlertsSent = {};
-
+function bossKey(name){
+  return (name || "").trim();
+}
+function sendDiscordAlert(message){
+  fetch("https://l9-discord-bot-production.up.railway.app/alert", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-alert-secret": "YOUR_SAME_SECRET_HERE"
+    },
+    body: JSON.stringify({ message })
+  }).catch(err => console.error("Bot alert failed:", err));
+}
 let currentAdminUser = null;
 
 
@@ -686,6 +698,7 @@ if(!saved){
     timerEl.innerText = "Not Set";
     spawnEl.innerText = "";
     card.dataset.spawn = Infinity;
+    discordAlertsSent[bossKey(boss.name)] = false;
     return;
 }
 
@@ -760,11 +773,18 @@ if(!spawn){
     }
 
    
-    if (remaining <= 900000 && !discordAlertsSent[boss.name]) {
+    const key = bossKey(boss.name);
 
-        //sendDiscordAlert("⚔️ " + boss.name + " spawning in 15 minutes!");
-        discordAlertsSent[boss.name] = true;
-    }
+    // re-arm when boss is more than 15 minutes away
+if (remaining > 9999999) {
+  discordAlertsSent[key] = false;
+}
+
+if (remaining <= 9999999 && !discordAlertsSent[key]) {
+  sendDiscordAlert(`⚔️ **${boss.name}** spawning in **15 minutes**!\n`);
+  console.log("Discord alert sent for:", key);
+  discordAlertsSent[key] = true;
+}
             timerEl.innerText = formatTime(remaining);
 
             // Converted stored UTC spawn to selected timezone shiet
@@ -1073,6 +1093,8 @@ if(assistEnabled) db.ref("claimFlags/" + k).set(false);
     
 });
 
+discordAlertsSent[bossKey(currentAdminBoss)] = false;
+
             db.ref("bossHistory").push({
                 boss: currentAdminBoss,
                 deathTime: death.getTime(),
@@ -1129,16 +1151,14 @@ if(assistEnabled) db.ref("claimFlags/" + k).set(false);
 
         const guild = document.getElementById("adminGuild").value || "";
 
-// Ctrl+F: if(guild){
-if(guild){
-    db.ref("bossTimers/" + currentAdminBoss).set({
-        spawn: spawn,
-        guild: guild,
-        
-    });
-}
 
-        discordAlertsSent[currentAdminBoss] = false;
+db.ref("bossTimers/" + currentAdminBoss).set({
+  spawn: spawn,
+  guild: guild || "",
+});
+
+
+        discordAlertsSent[bossKey(currentAdminBoss)] = false;
 
         db.ref("bossHistory").push({
     boss: currentAdminBoss,
@@ -1167,12 +1187,15 @@ if (resetBtn) {
             return;
         }
 
+        discordAlertsSent[bossKey(currentAdminBoss)] = false;
+
         const k = currentAdminBoss.trim();
 db.ref("assistFlags/" + k).set(false);
 db.ref("claimFlags/" + k).set(false);
         if(!confirm("Reset this?")){
             return;
         }
+        
 
         const bossObj = bosses.find(b => b.name === currentAdminBoss);
 
@@ -1185,7 +1208,9 @@ db.ref("claimFlags/" + k).set(false);
         triggerTimerAnimation(currentAdminBoss);
         closeAdminLayer();
     };
+
 }
+
 
 const removeGuildBtn = document.getElementById("adminRemoveGuildBtn");
 
@@ -1197,11 +1222,12 @@ if(removeGuildBtn){
             return;
         }
 
-        const bossObj = bosses.find(b => b.name === currentAdminBoss);
+        const k = (currentAdminBoss || "").trim();
+        const bossObj = bosses.find(b => (b.name || "").trim() === k);
 
         if(bossObj?.type === "fixed"){
             const k = currentAdminBoss.trim();
-            db.ref("fixedBossGuilds/" + k).set(guild);
+            db.ref("fixedBossGuilds/" + k).remove();
         } else {
             db.ref("bossTimers/" + currentAdminBoss + "/guild").remove();
         }
