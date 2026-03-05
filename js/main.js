@@ -60,15 +60,20 @@ let discordAlertsSent = {};
 function bossKey(name){
   return (name || "").trim();
 }
-function sendDiscordAlert(message){
+function sendDiscordAlert(message) {
   fetch("https://l9-discord-bot-production.up.railway.app/alert", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-alert-secret": "YOUR_SAME_SECRET_HERE"
+      "x-alert-secret": "l9_alert_secret_2026"
     },
     body: JSON.stringify({ message })
-  }).catch(err => console.error("Bot alert failed:", err));
+  })
+    .then(async (r) => {
+      const text = await r.text().catch(() => "");
+      console.log("✅ alert response:", r.status, text);
+    })
+    .catch(err => console.error("❌ Bot alert failed:", err));
 }
 let currentAdminUser = null;
 
@@ -775,16 +780,19 @@ if(!spawn){
    
     const key = bossKey(boss.name);
 
-const ALERT_MS = 15 * 60 * 1000; // 900000 (15 minutes)
+const ALERT_MS = 15 * 60 * 1000; // 900000
 
-// re-arm when boss is more than 15 minutes away
+if (remaining <= ALERT_MS + 5000 && remaining >= ALERT_MS - 5000) {
+  console.log("🟡 Near 15min:", boss.name, "remaining(ms)=", remaining);
+}
+
 if (remaining > ALERT_MS) {
   discordAlertsSent[key] = false;
 }
 
 if (remaining <= ALERT_MS && !discordAlertsSent[key]) {
+  console.log("🔴 SENDING ALERT NOW:", boss.name, "remaining(ms)=", remaining);
   sendDiscordAlert(`<@&1463810381456609360> ⚔️ ${boss.name} spawning in 15 minutes!`);
-  console.log("Discord alert sent for:", key);
   discordAlertsSent[key] = true;
 }
             timerEl.innerText = formatTime(remaining);
