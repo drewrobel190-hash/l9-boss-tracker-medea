@@ -775,13 +775,15 @@ if(!spawn){
    
     const key = bossKey(boss.name);
 
-    // re-arm when boss is more than 15 minutes away
-if (remaining > 9999999) {
+const ALERT_MS = 15 * 60 * 1000; // 900000 (15 minutes)
+
+// re-arm when boss is more than 15 minutes away
+if (remaining > ALERT_MS) {
   discordAlertsSent[key] = false;
 }
 
-if (remaining <= 9999999 && !discordAlertsSent[key]) {
-  sendDiscordAlert(`⚔️ **${boss.name}** spawning in **15 minutes**!\n`);
+if (remaining <= ALERT_MS && !discordAlertsSent[key]) {
+  sendDiscordAlert(`<@&1463810381456609360> ⚔️ ${boss.name} spawning in 15 minutes!`);
   console.log("Discord alert sent for:", key);
   discordAlertsSent[key] = true;
 }
@@ -1868,11 +1870,12 @@ function limitBossHistory(){
     });
 }
 
+
+
+
 // ===== CREATE WORLD BOSSES =====
 
 createWorldBossCard("Ratan", 60, "Pictures/World boss/Ratan.png", "Tomb of Time");
 createWorldBossCard("Parto", 85, "Pictures/World boss/Parto.png", "Magic Puppet's Yearning");
 createWorldBossCard("Nedra", 105, "Pictures/World boss/Nedra.png", "Bloodsoaked Plateau");
-
-
 
