@@ -803,7 +803,10 @@ if(!spawn){
         timerEl.classList.add("warning");
     }
 
-   
+   // 🚫 Skip Discord alerts for world bosses
+if (boss.category === "world") {
+  return;
+}
     const key = bossKey(boss.name);
 
 const ALERT_MS = 20 * 60 * 1000; // 1200000
