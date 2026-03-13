@@ -154,6 +154,7 @@ disabled: false
 schedule:[{day:6,time:"17:00"}],
 image:"Pictures/Ringor.png",
 info: "Level 70 Field Boss",
+ disabled: true,
 location: "Corrupted Basin > Ringor's Cave"
 },
 
@@ -161,6 +162,7 @@ location: "Corrupted Basin > Ringor's Cave"
 schedule:[{day:5,time:"19:00"}],
 image:"Pictures/Roderick.png",
 info: "Level 70 Field Boss",
+ disabled: true,
 location: "Corrupted Basin > Roderick's Cave"
 },
 
@@ -168,6 +170,7 @@ location: "Corrupted Basin > Roderick's Cave"
 schedule:[{day:5,time:"22:00"},{day:3,time:"21:00"}],
 image:"Pictures/Auraq.png",
 info: "Level 70 Field Boss",
+ disabled: true,
 location: "Corrupted Basin > Auraq's Cave"
 },
 
@@ -175,6 +178,7 @@ location: "Corrupted Basin > Auraq's Cave"
 schedule:[{day:6,time:"22:00"}],
 image:"Pictures/Chaiflock.png",
 info: "Level 70 Field Boss",
+ disabled: true,
 location: "Corrupted Basin > Chaiflock's Cave"
 },
 
@@ -182,6 +186,7 @@ location: "Corrupted Basin > Chaiflock's Cave"
 schedule:[{day:0,time:"21:00"}],
 image:"Pictures/Benji.png",
 info: "Level 70 Field Boss",
+ disabled: true,
 location: "Corrupted Basin > Benji's Cave"
 },
 
@@ -193,7 +198,7 @@ schedule:[
 image:"Pictures/Libitina.png",
 info: "Level 70 Field Boss",
 location: "Corrupted Basin > Benji's Cave",
-disabled: false,
+disabled: true,
 },
 
 { name:"Rakajeth", type:"fixed",
@@ -203,6 +208,7 @@ schedule:[
 ],
 image:"Pictures/Rakajeth.png",
 info: "Level 70 Field Boss",
+ disabled: true,
 location: "Corrupted Basin > Benji's Cave"
 },
 {
