@@ -15,6 +15,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+
 db.ref("bossTimers").on("value", snap => {
     cloudData = snap.val() || {};
     updateTimers();
@@ -55,6 +56,8 @@ let fixedGuildData = {};
 let isTyping = false;
 let isAdmin = false;
 let expandedCard = null;
+
+
 
 let discordAlertsSent = {};
 function bossKey(name){
@@ -102,7 +105,17 @@ function sendDiscordAlert(message) {
     .catch(err => console.error("❌ Bot alert failed:", err));
 }
 let currentAdminUser = null;
+let todaySchedule = [];
+let currentScheduleKey = "";
+let currentScheduleRef = null;
 
+const scheduleBtn = document.getElementById("scheduleBtn");
+const schedulePopup = document.getElementById("schedulePopup");
+const scheduleList = document.getElementById("scheduleList");
+const scheduleTime = document.getElementById("scheduleTime");
+const scheduleText = document.getElementById("scheduleText");
+const addScheduleBtn = document.getElementById("addScheduleBtn");
+const scheduleAdminBox = document.getElementById("scheduleAdminBox");
 
 function resetCardState(card){
     if(!card) return;
@@ -379,6 +392,7 @@ timezoneSelect.addEventListener("change", function(){
     localStorage.setItem("timezoneOffset", selectedOffset);
     updateTimers();
     sortBosses();
+    renderTodaySchedule();
 });
 
 /* ========================================== */
@@ -493,7 +507,166 @@ function isTomorrow(spawn, now){
     tomorrow.setDate(now.getDate()+1);
     return isSameDay(spawn, tomorrow);
 }
+function getTodayScheduleKey(){
+    const zone =
+        selectedOffset === 9 ? "Asia/Seoul" :
+        selectedOffset === 8 ? "Asia/Manila" :
+        "Asia/Bangkok";
 
+    const now = new Date();
+
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: zone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).formatToParts(now);
+
+    const year = parts.find(p => p.type === "year").value;
+    const month = parts.find(p => p.type === "month").value;
+    const day = parts.find(p => p.type === "day").value;
+
+    return `${year}-${month}-${day}`;
+}
+
+function formatScheduleTime(timestamp){
+    if(!timestamp) return "No Time";
+
+    const zone =
+        selectedOffset === 9 ? "Asia/Seoul" :
+        selectedOffset === 8 ? "Asia/Manila" :
+        "Asia/Bangkok";
+
+    return new Date(timestamp).toLocaleString("en-US", {
+        timeZone: zone,
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+    });
+}
+
+function renderTodaySchedule(){
+    if(!scheduleList) return;
+
+    scheduleList.innerHTML = "";
+
+    if(!todaySchedule || todaySchedule.length === 0){
+        scheduleList.innerHTML = `<div class="schedule-empty">No events for today yet.</div>`;
+        return;
+    }
+
+    const now = Date.now();
+
+    const validEvents = todaySchedule
+        .map((item, originalIndex) => ({ item, originalIndex }))
+        .filter(entry => (entry.item.timestamp || 0) > now);
+
+    if(validEvents.length === 0){
+        scheduleList.innerHTML = `<div class="schedule-empty">No upcoming events.</div>`;
+        return;
+    }
+
+    validEvents.forEach(({ item, originalIndex }) => {
+        const row = document.createElement("div");
+        row.className = "schedule-entry";
+
+        row.innerHTML = `
+            <div class="schedule-entry-left">
+                <span class="schedule-time">${formatScheduleTime(item.timestamp)}</span>
+                <span class="schedule-text">${item.text || ""}</span>
+            </div>
+            ${isAdmin ? `<button class="schedule-delete" onclick="deleteScheduleItem(${originalIndex})">Delete</button>` : ""}
+        `;
+
+        scheduleList.appendChild(row);
+    });
+}
+
+function listenTodaySchedule(){
+    const newKey = getTodayScheduleKey();
+
+    if(currentScheduleKey === newKey && currentScheduleRef){
+        return;
+    }
+
+    if(currentScheduleRef){
+        currentScheduleRef.off();
+    }
+
+    currentScheduleKey = newKey;
+    currentScheduleRef = db.ref("dailySchedules/" + currentScheduleKey);
+
+    currentScheduleRef.on("value", snap => {
+        todaySchedule = snap.val() || [];
+        renderTodaySchedule();
+    });
+}
+
+function openSchedulePopup(){
+    if(schedulePopup){
+        schedulePopup.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+
+    if(scheduleAdminBox){
+        scheduleAdminBox.style.display = isAdmin ? "block" : "none";
+    }
+
+    renderTodaySchedule();
+}
+
+function closeSchedulePopup(){
+    if(schedulePopup){
+        schedulePopup.classList.remove("active");
+        document.body.style.overflow = "auto";
+    }
+}
+
+function addTodaySchedule(){
+    if(!isAdmin){
+        alert("Admin only.");
+        return;
+    }
+
+    const timeValue = scheduleTime?.value?.trim() || "";
+    const text = scheduleText?.value?.trim() || "";
+
+    if(!text){
+        alert("Please enter an event.");
+        return;
+    }
+
+    if(!timeValue){
+        alert("Please enter a time.");
+        return;
+    }
+
+    const todayKey = getTodayScheduleKey();
+    const localDateTime = new Date(`${todayKey}T${timeValue}:00`);
+
+    const updated = [...todaySchedule, {
+        timestamp: localDateTime.getTime(),
+        text
+    }].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+    db.ref("dailySchedules/" + todayKey).set(updated);
+
+    if(scheduleTime) scheduleTime.value = "";
+    if(scheduleText) scheduleText.value = "";
+}
+
+function deleteScheduleItem(index){
+    if(!isAdmin){
+        alert("Admin only.");
+        return;
+    }
+
+    const updated = [...todaySchedule];
+    updated.splice(index, 1);
+
+    const key = getTodayScheduleKey();
+    db.ref("dailySchedules/" + key).set(updated);
+}
 
 
 
@@ -807,6 +980,7 @@ if(!spawn){
 if (boss.category === "world") {
   return;
 }
+
     const key = bossKey(boss.name);
 
 const ALERT_MS = 20 * 60 * 1000; // 1200000
@@ -889,149 +1063,6 @@ if (remaining <= ALERT_MS && !discordAlertsSent[key]) {
 `⚔️ ${boss.name} AztecX4 assemble`,
 `⚔️ ${boss.name} gear up`,
 `⚔️ ${boss.name} battle soon`,
-`⚔️ ${boss.name} hello hello boss coming`,
-`⚔️ ${boss.name} guys im hungry but boss soon`,
-`⚔️ ${boss.name} dont blame me if you miss`,
-`⚔️ ${boss.name} im just the messenger`,
-`⚔️ ${boss.name} pls drop something today`,
-`⚔️ ${boss.name} ok wake up again`,
-`⚔️ ${boss.name} why are you still afk`,
-`⚔️ ${boss.name} boss coming trust me bro`,
-`⚔️ ${boss.name} another ping sorry`,
-`⚔️ ${boss.name} i think boss soon`,
-`⚔️ ${boss.name} maybe spawn maybe not`,
-`⚔️ ${boss.name} idk bro but boss`,
-`⚔️ ${boss.name} ok guys serious now boss`,
-`⚔️ ${boss.name} last ping maybe`,
-`⚔️ ${boss.name} dont sleep`,
-`⚔️ ${boss.name} bro come here`,
-`⚔️ ${boss.name} stop chatting boss soon`,
-`⚔️ ${boss.name} if late dont cry`,
-`⚔️ ${boss.name} boss waiting for you`,
-`⚔️ ${boss.name} wake up guild`,
-`⚔️ ${boss.name} go go go`,
-`⚔️ ${boss.name} dont ask just come`,
-`⚔️ ${boss.name} who forgot again`,
-`⚔️ ${boss.name} boss again haha`,
-`⚔️ ${boss.name} hello police boss here`,
-`⚔️ ${boss.name} pls come fast`,
-`⚔️ ${boss.name} ping again sorry`,
-`⚔️ ${boss.name} bro hurry`,
-`⚔️ ${boss.name} maybe good loot`,
-`⚔️ ${boss.name} maybe trash loot`,
-`⚔️ ${boss.name} dont say i didnt ping`,
-`⚔️ ${boss.name} okay last reminder`,
-`⚔️ ${boss.name} bro bro bro boss`,
-`⚔️ ${boss.name} why nobody here`,
-`⚔️ ${boss.name} boss lonely`,
-`⚔️ ${boss.name} hello guild`,
-`⚔️ ${boss.name} come again`,
-`⚔️ ${boss.name} ok serious now`,
-`⚔️ ${boss.name} im tired but boss`,
-`⚔️ ${boss.name} just come bro`,
-`⚔️ ${boss.name} boss waiting outside`,
-`⚔️ ${boss.name} dont make boss wait`,
-`⚔️ ${boss.name} ping ping ping`,
-`⚔️ ${boss.name} okay wake up again`,
-`⚔️ ${boss.name} boss alarm`,
-`⚔️ ${boss.name} hello its me again`,
-`⚔️ ${boss.name} boss soon trust`,
-`⚔️ ${boss.name} hello again im back`,
-`⚔️ ${boss.name} sorry for another ping`,
-`⚔️ ${boss.name} guys please move`,
-`⚔️ ${boss.name} boss outside waiting`,
-`⚔️ ${boss.name} ok im serious now`,
-`⚔️ ${boss.name} bro where are you`,
-`⚔️ ${boss.name} guys dont ignore this`,
-`⚔️ ${boss.name} wake up again please`,
-`⚔️ ${boss.name} im not joking now`,
-`⚔️ ${boss.name} come before its dead`,
-`⚔️ ${boss.name} boss spawn soon maybe`,
-`⚔️ ${boss.name} trust the bot`,
-`⚔️ ${boss.name} i repeat boss soon`,
-`⚔️ ${boss.name} ok im pinging again`,
-`⚔️ ${boss.name} someone come please`,
-`⚔️ ${boss.name} bro dont be lazy`,
-`⚔️ ${boss.name} stop afk farming`,
-`⚔️ ${boss.name} boss about to wake up`,
-`⚔️ ${boss.name} hello hello again`,
-`⚔️ ${boss.name} guild please respond`,
-`⚔️ ${boss.name} boss wants attention`,
-`⚔️ ${boss.name} come bully the boss`,
-`⚔️ ${boss.name} dont make me ping again`,
-`⚔️ ${boss.name} ok maybe last ping`,
-`⚔️ ${boss.name} real last ping maybe`,
-`⚔️ ${boss.name} bro just come`,
-`⚔️ ${boss.name} im watching you`,
-`⚔️ ${boss.name} stop pretending busy`,
-`⚔️ ${boss.name} ok time to move`,
-`⚔️ ${boss.name} boss waiting patiently`,
-`⚔️ ${boss.name} come take the loot`,
-`⚔️ ${boss.name} someone start walking`,
-`⚔️ ${boss.name} guys im serious`,
-`⚔️ ${boss.name} boss feeling lonely`,
-`⚔️ ${boss.name} dont leave me alone`,
-`⚔️ ${boss.name} bro im pinging again`,
-`⚔️ ${boss.name} boss just chilling`,
-`⚔️ ${boss.name} pls show up`,
-`⚔️ ${boss.name} come say hello`,
-`⚔️ ${boss.name} boss calling you`,
-`⚔️ ${boss.name} i did my job`,
-`⚔️ ${boss.name} if you miss not my fault`,
-`⚔️ ${boss.name} im just a bot bro`,
-`⚔️ ${boss.name} guys hurry please`,
-`⚔️ ${boss.name} boss getting bored`,
-`⚔️ ${boss.name} come before regret`,
-`⚔️ ${boss.name} boss is waiting guys`,
-`⚔️ ${boss.name} ok now really boss`,
-`⚔️ ${boss.name} bro dont miss again`,
-`⚔️ ${boss.name} im pinging with love`,
-      `⚔️ Guys ${boss.name} spawning in 20 minutes`,
-`⚔️ Bro ${boss.name} coming soon`,
-`⚔️ Hey guild ${boss.name} will spawn soon`,
-`⚔️ Wake up everyone ${boss.name} in 20 minutes`,
-`⚔️ Listen up ${boss.name} incoming`,
-`⚔️ Reminder guys ${boss.name} about to spawn`,
-`⚔️ Attention Gamers ${boss.name} soon`,
-`⚔️ Hello guild ${boss.name} boss time`,
-`⚔️ Quick reminder ${boss.name} spawning`,
-`⚔️ Don't forget ${boss.name} soon`,
-`⚔️ Bro hurry ${boss.name} will spawn`,
-`⚔️ Hey sleepy heads ${boss.name} incoming`,
-`⚔️ Oi guild ${boss.name} in 20 minutes`,
-`⚔️ Guys prepare ${boss.name} is coming`,
-`⚔️ Come on team ${boss.name} boss soon`,
-`⚔️ Stop AFK ${boss.name} about to spawn`,
-`⚔️ Move move ${boss.name} incoming`,
-`⚔️ Hello again ${boss.name} boss time`,
-`⚔️ Gather up ${boss.name} about to appear`,
-`⚔️ Time to move ${boss.name} incoming`,
-`⚔️ Get ready guys ${boss.name} spawn soon`,
-`⚔️ Hey guys ${boss.name} dont miss`,
-`⚔️ Squad assemble ${boss.name} boss soon`,
-`⚔️ Wake up guild ${boss.name} incoming`,
-`⚔️ Last call ${boss.name} spawning`,
-`⚔️ Quick quick ${boss.name} coming`,
-`⚔️ Don't be late ${boss.name} spawn soon`,
-`⚔️ Team hurry ${boss.name} incoming`,
-`⚔️ Loot enjoyers ${boss.name} soon`,
-`⚔️ If you awake ${boss.name} coming`,
-`⚔️ Ok ${boss.name} spawn soon`,
-`⚔️ Bro listen ${boss.name} about to spawn`,
-`⚔️ Someone ping guild ${boss.name} soon`,
-`⚔️ Wake up farmers ${boss.name} incoming`,
-`⚔️ Hello people ${boss.name} boss time`,
-`⚔️ Guys guys ${boss.name} about to spawn`,
-`⚔️ If you're free ${boss.name} soon`,
-`⚔️ Come fast ${boss.name} spawning`,
-`⚔️ Guild meet up at ${boss.name}`,
-`⚔️ No sleep gamers ${boss.name} incoming`,
-`⚔️ Let's move ${boss.name} spawn soon`,
-`⚔️ Everyone ready ${boss.name} boss time`,
-`⚔️ Boss hunters ${boss.name} soon`,
-`⚔️ Come bully ${boss.name}`,
-`⚔️ Stop chatting ${boss.name} incoming`,
-`⚔️ Guys again ${boss.name} spawn soon`,
     ];
 
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
@@ -1201,6 +1232,7 @@ let currentAdminHours = null;
 
 //errors fixed no more errors 1day fixed by teshi
 function openAdminLayer(name, hours){
+document.body.classList.add("admin-open");
 
     currentAdminBoss = name;
     currentAdminHours = hours;
@@ -1287,6 +1319,7 @@ if(claimBox){
 
 
 function closeAdminLayer(){
+    document.body.classList.remove("admin-open");
     document.getElementById("adminLayer").classList.remove("active");
     document.body.style.overflow = "auto";
 }
@@ -1507,7 +1540,7 @@ console.log("LootData:", lootData);
 
 bosses.forEach(createCard);
 updateBadgesUI();
-
+listenTodaySchedule();
 
 
 document.addEventListener("click", function(e){
@@ -1557,6 +1590,12 @@ function applyAdminMode(){
 
   const historyBtn = document.getElementById("historyBtn");
   if(historyBtn) historyBtn.style.display = "inline-block";
+
+  if(scheduleAdminBox){
+    scheduleAdminBox.style.display = isAdmin ? "block" : "none";
+  }
+
+  renderTodaySchedule();
 }
 
 
@@ -1564,11 +1603,15 @@ function applyAdminMode(){
 
 function startTimer(){
     updateTimers();
-    setInterval(()=>{
-    updateTimers();
-    if (!isTyping) sortBosses();
-}, 1000);
+    listenTodaySchedule();
 
+    setInterval(() => {
+        updateTimers();
+        listenTodaySchedule();
+        renderTodaySchedule();
+
+        if (!isTyping) sortBosses();
+    }, 1000);
 }
 function toggleBossMenu(event, bossName){
     event.stopPropagation();
@@ -1670,6 +1713,11 @@ document.addEventListener("keydown", function(e){
             allLootPopup.classList.remove("active");
             document.body.style.overflow = "auto";
         }
+        const schedulePopup = document.getElementById("schedulePopup");
+if(schedulePopup.classList.contains("active")){
+    schedulePopup.classList.remove("active");
+    document.body.style.overflow = "auto";
+}
     }
 });
 
@@ -1702,6 +1750,24 @@ function createWorldBossCard(name, level, image, location){
     container.appendChild(card);
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+    const scheduleBtn = document.getElementById("scheduleBtn");
+    if(scheduleBtn){
+        scheduleBtn.addEventListener("click", openSchedulePopup);
+    }
+});
+
+if(addScheduleBtn){
+    addScheduleBtn.onclick = addTodaySchedule;
+}
+
+if(schedulePopup){
+    schedulePopup.addEventListener("click", function(e){
+        if(e.target === schedulePopup){
+            closeSchedulePopup();
+        }
+    });
+}
 
 
 const openMapBtn = document.getElementById("openMapBtn");
@@ -2133,5 +2199,4 @@ function limitBossHistory(){
 createWorldBossCard("Ratan", 60, "Pictures/World boss/Ratan.png", "Tomb of Time");
 createWorldBossCard("Parto", 85, "Pictures/World boss/Parto.png", "Magic Puppet's Yearning");
 createWorldBossCard("Nedra", 105, "Pictures/World boss/Nedra.png", "Bloodsoaked Plateau");
-
 
