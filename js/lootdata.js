@@ -80,8 +80,8 @@ Viorent: [
 Ego: [
 
     {
-    name: "Serad Battle Staff",
-    rarity: "Epic",
+    name: "Disorder's Nose",
+    rarity: "Mythic",
     type: "Nose",
     img: "Boss loots/3.Ego/Disorder Nose.png",
     desc: "",
