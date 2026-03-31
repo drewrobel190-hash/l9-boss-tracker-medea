@@ -85,7 +85,7 @@ Ego: [
     type: "Nose",
     img: "Boss loots/3.Ego/Disorder Nose.png",
     desc: "Tanginang ilong yan",
-    stats: "Masarap Sapakin yung mukha"
+    stats: "Ednurance Ignore Pango"
 },
     
 {
