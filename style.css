@@ -2207,10 +2207,9 @@ body::-webkit-scrollbar-thumb:hover {
 /* ===== MOBILE HEADER CLEAN MODE ===== */
 @media (max-width: 768px) {
 
-    /* Hide buttons you don't want */
+    /* Hide only the ones you really want hidden */
     #worldBossBtn,
     #openMapBtn,
-    .map-btn,
     .map-sticky-bar,
     .dev-banner {
         display: none !important;
@@ -2221,6 +2220,7 @@ body::-webkit-scrollbar-thumb:hover {
         padding: 12px 15px;
         grid-template-columns: 1fr;
         text-align: center;
+        gap: 10px;
     }
 
     .header-left,
@@ -2229,11 +2229,39 @@ body::-webkit-scrollbar-thumb:hover {
         justify-content: center;
     }
 
-    /* Stack nicely */
     .header-left {
-        margin-bottom: 8px;
+        margin-bottom: 4px;
     }
 
+    .header-right {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* Keep schedule + admin + history visible */
+    #scheduleBtn,
+    #historyBtn,
+    .admin-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    #worldBossBtn,
+    #openMapBtn,
+    #historyBtn,
+    .map-sticky-bar,
+    .dev-banner {
+        display: none !important;
+    }
+
+    #scheduleBtn,
+    .admin-btn {
+        display: inline-flex !important;
+    }
 }
 
 @media (max-width: 768px) {
@@ -2560,6 +2588,163 @@ body::-webkit-scrollbar-thumb:hover {
     min-width:120px;
 }
 
+/* ===== TODAY SCHEDULE POPUP ===== */
+
+.schedule-content{
+    width: 700px;
+    max-width: 92%;
+    max-height: 78vh;
+    overflow-y: auto;
+    padding: 28px;
+    background: linear-gradient(145deg, #1f1f1f, #2b2b2b);
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.6);
+}
+
+.schedule-admin-box{
+    margin: 18px 0 16px;
+}
+
+.schedule-input-row{
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.schedule-input-row input[type="time"]{
+    min-width: 130px;
+}
+
+.schedule-input-row input[type="text"]{
+    flex: 1;
+    min-width: 220px;
+}
+
+.schedule-list{
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.schedule-entry{
+    background: #2a313a;
+    padding: 12px 16px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    border-left: 4px solid #4da6ff;
+    transition: 0.25s ease;
+}
+
+.schedule-entry:hover{
+    background: #313b45;
+    transform: translateX(3px);
+}
+
+.schedule-text{
+    color: #ddd;
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.schedule-time{
+    font-weight: bold;
+    color: #4da6ff;
+    font-size: 14px;
+}
+
+.schedule-text{
+    color: #ddd;
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.schedule-delete{
+    background: #7a1c1c;
+    border: 1px solid #aa2b2b;
+    color: white;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.25s ease;
+    flex-shrink: 0;
+}
+
+.schedule-delete:hover{
+    background: #a32222;
+    box-shadow: 0 0 12px rgba(255,0,0,0.35);
+}
+
+.schedule-empty{
+    text-align: center;
+    color: #aaa;
+    padding: 24px 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+}
+
+/* scrollbar */
+.schedule-list::-webkit-scrollbar{
+    width: 8px;
+}
+
+.schedule-list::-webkit-scrollbar-track{
+    background: #1e1e1e;
+    border-radius: 10px;
+}
+
+.schedule-list::-webkit-scrollbar-thumb{
+    background: linear-gradient(180deg, #4da6ff, #2563eb);
+    border-radius: 10px;
+}
+
+.schedule-list::-webkit-scrollbar-thumb:hover{
+    background: linear-gradient(180deg, #60a5fa, #1d4ed8);
+}
+
+/* mobile */
+@media (max-width: 768px){
+    .schedule-content{
+        width: 95%;
+        padding: 18px;
+        max-height: 82vh;
+    }
+
+    .schedule-input-row{
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .schedule-input-row input[type="time"],
+    .schedule-input-row input[type="text"],
+    .schedule-input-row button{
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .schedule-entry{
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .schedule-entry-left{
+        flex: 1;
+        min-width: 0;
+    }
+
+    .schedule-delete{
+        width: auto;
+    }
+}
 
 /* ===== ASSIST BADGE (PREMIUM STYLE) ===== */
 
@@ -2569,8 +2754,8 @@ body::-webkit-scrollbar-thumb:hover {
   position: relative;
   width: 110px;
   height: 150px;
-  flex: 0 0 110px;     
-  overflow: hidden;   
+  flex: 0 0 110px;     /* keeps the image column fixed */
+  overflow: hidden;    /* keeps badge inside image */
 }
 
 .boss-img{
@@ -2579,7 +2764,8 @@ body::-webkit-scrollbar-thumb:hover {
   object-fit: cover;
   display: block;
 }
-
+/* Base badge */
+/* Ctrl+F: assist-badge */
 .assist-badge{
   position:absolute;
   left:8px;
@@ -2615,7 +2801,7 @@ body::-webkit-scrollbar-thumb:hover {
   transform: translateY(0);
 }
 
-
+/* Add a tiny dot + pulse */
 .assist-badge::before{
   content:"";
   width:6px;
@@ -2626,12 +2812,12 @@ body::-webkit-scrollbar-thumb:hover {
   animation: assistPulse 1.6s ease-in-out infinite;
 }
 
-
+/* Optional: make the badge text glow a bit */
 .card.assist-on .assist-badge{
   text-shadow: 0 0 10px rgba(16,185,129,0.25);
 }
 
-
+/* Nice hover behavior */
 .card.assist-on:hover .assist-badge{
   filter: brightness(1.08);
   box-shadow:
@@ -2639,7 +2825,7 @@ body::-webkit-scrollbar-thumb:hover {
     0 0 26px rgba(16,185,129,0.28);
 }
 
-
+/* Optional: subtle green border hint on the whole card when Assist ON */
 .card.assist-on{
   box-shadow:
     0 0 0 1px rgba(16,185,129,0.18) inset,
@@ -2654,10 +2840,11 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* ===== OUR LOOT BADGE (GLOWING GOLD) ===== */
 
+/* Ctrl+F: claim-badge */
 .claim-badge{
   position:absolute;
   left:8px;
-  bottom:5px;    
+  bottom:5px;    /* 🔥 stacked above Assist */
 
   display:none;
   align-items:center;
@@ -2689,6 +2876,7 @@ body::-webkit-scrollbar-thumb:hover {
   transform: translateY(0);
 }
 
+/* Golden pulse dot */
 .claim-badge::before{
   content:"";
   width:6px;
@@ -2699,28 +2887,29 @@ body::-webkit-scrollbar-thumb:hover {
   animation: claimPulse 1.6s ease-in-out infinite;
 }
 
-
+/* Glow animation */
 @keyframes claimPulse{
   0%   { transform: scale(1);   opacity:0.75; }
   50%  { transform: scale(1.35);opacity:1; }
   100% { transform: scale(1);   opacity:0.75; }
 }
 
-
+/* Slight card glow when owned */
 .card.claim-on{
   box-shadow:
     0 0 0 1px rgba(255,193,7,0.25) inset,
     0 0 22px rgba(255,193,7,0.08);
 }
 
+/* Hide Assist / Our Loot badges when loot overlay is open */
 .card.show-details .assist-badge,
 .card.show-details .claim-badge{
   display: none !important;
 }
 
+/* Show ONLY ONE */
 .card.claim-on .claim-badge{ display:inline-flex; }
 .card.claim-on .assist-badge{ display:none !important; }
 
 .card.assist-on .assist-badge{ display:inline-flex; }
 .card.assist-on .claim-badge{ display:none !important; }
-
