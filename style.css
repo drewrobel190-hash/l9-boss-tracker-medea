@@ -1290,8 +1290,8 @@ body::-webkit-scrollbar-thumb:hover {
     padding:35px 45px;
     border-radius:18px;
 
-    width:auto;                
-    min-width:600px;            
+    width:auto;
+    min-width:0;
     max-width:800px;
 
     height:auto;              
@@ -2913,3 +2913,120 @@ body::-webkit-scrollbar-thumb:hover {
 
 .card.assist-on .assist-badge{ display:inline-flex; }
 .card.assist-on .claim-badge{ display:none !important; }
+
+@media (max-width: 768px){
+
+    .admin-layer{
+        align-items: flex-start;
+        padding: 10px;
+        overflow-y: auto;
+    }
+
+    .admin-box{
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        max-height: none;
+
+        margin-top: 12px;
+        padding: 16px;
+        border-radius: 14px;
+
+        overflow: visible;
+        box-sizing: border-box;
+    }
+
+    .admin-header{
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .admin-boss-img{
+        width: 68px;
+        height: 68px;
+        border-radius: 12px;
+        transform: none;
+        flex-shrink: 0;
+    }
+
+    .admin-title-group{
+        min-width: 0;
+        flex: 1;
+    }
+
+    .admin-title-group h2{
+        font-size: 18px;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    .admin-current{
+        margin-top: 6px;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .admin-inputs{
+        gap: 12px;
+        margin-top: 14px;
+    }
+
+    .admin-row{
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .admin-row label{
+        min-width: 0 !important;
+        margin: 0;
+    }
+
+    .admin-row input,
+    .admin-row button,
+    #adminRemoveGuildBtn,
+    #adminSetBtn,
+    #adminCustomBtn,
+    #adminResetBtn,
+    .admin-close{
+        width: 100%;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box;
+    }
+
+    .admin-inputs input{
+        padding: 10px 12px;
+    }
+
+    #adminAssistRow,
+    #adminClaimRow{
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    #adminAssistRow > label:first-child,
+    #adminClaimRow > label:first-child{
+        min-width: auto !important;
+        flex-shrink: 0;
+    }
+
+    #adminAssistRow label:last-child,
+    #adminClaimRow label:last-child{
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        justify-content: flex-start;
+    }
+
+    #adminAssist,
+    #adminClaim{
+        width: auto !important;
+    }
+}
