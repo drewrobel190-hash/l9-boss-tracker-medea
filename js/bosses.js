@@ -115,7 +115,7 @@ schedule:[{day:1,time:"11:30"},{day:4,time:"19:00"}],
 image:"Pictures/Clemantis.png",
 info: "Level 70 Field Boss",
 location: "Corrupted Basin > White Witch Cradle",
-disabled: true  
+
 },
 
 { name:"Saphirus", type:"fixed",
@@ -123,7 +123,7 @@ schedule:[{day:0,time:"17:00"},{day:2,time:"11:30"}],
 image:"Pictures/Saphirus.png",
 info: "Level 80 Field Boss",
 location: "Cresendent Lake > Moonlight Shackle",
-disabled: true,
+
 },
 
 { name:"Neutro", type:"fixed",
@@ -131,7 +131,7 @@ schedule:[{day:2,time:"19:00"},{day:4,time:"11:30"}],
 image:"Pictures/Neutro.png",
 info: "Level 80 Field Boss",
 location: "Desert of the Screaming > Battlefield of Love and Hatred",
-disabled: true
+
 },
 
 { name:"Thymele", type:"fixed",
@@ -139,7 +139,7 @@ schedule:[{day:1,time:"19:00"},{day:3,time:"11:30"}],
 image:"Pictures/Thymele.png",
 info: "Level 70 Field Boss",
 location: "Corrupted Basin > Thymele's Cave",
-disabled: true,
+
 },
 
 { name:"Milavy", type:"fixed",
@@ -147,14 +147,14 @@ schedule:[{day:6,time:"15:00"}],
 image:"Pictures/Milavy.png",
 info: "Level 70 Field Boss",
 location: "Corrupted Basin > Milavy's Cave",
-disabled: false
+
 },
 
 { name:"Ringor", type:"fixed",
 schedule:[{day:6,time:"17:00"}],
 image:"Pictures/Ringor.png",
 info: "Level 70 Field Boss",
- disabled: true,
+
 location: "Corrupted Basin > Ringor's Cave"
 },
 
@@ -162,7 +162,7 @@ location: "Corrupted Basin > Ringor's Cave"
 schedule:[{day:5,time:"19:00"}],
 image:"Pictures/Roderick.png",
 info: "Level 70 Field Boss",
- disabled: true,
+ 
 location: "Corrupted Basin > Roderick's Cave"
 },
 
@@ -170,7 +170,7 @@ location: "Corrupted Basin > Roderick's Cave"
 schedule:[{day:5,time:"22:00"},{day:3,time:"21:00"}],
 image:"Pictures/Auraq.png",
 info: "Level 70 Field Boss",
- disabled: true,
+
 location: "Corrupted Basin > Auraq's Cave"
 },
 
@@ -178,7 +178,7 @@ location: "Corrupted Basin > Auraq's Cave"
 schedule:[{day:6,time:"22:00"}],
 image:"Pictures/Chaiflock.png",
 info: "Level 70 Field Boss",
- disabled: true,
+
 location: "Corrupted Basin > Chaiflock's Cave"
 },
 
@@ -186,7 +186,7 @@ location: "Corrupted Basin > Chaiflock's Cave"
 schedule:[{day:0,time:"21:00"}],
 image:"Pictures/Benji.png",
 info: "Level 70 Field Boss",
- disabled: true,
+ 
 location: "Corrupted Basin > Benji's Cave"
 },
 
@@ -198,7 +198,7 @@ schedule:[
 image:"Pictures/Libitina.png",
 info: "Level 70 Field Boss",
 location: "Corrupted Basin > Benji's Cave",
-disabled: true,
+
 },
 
 { name:"Rakajeth", type:"fixed",
@@ -208,7 +208,7 @@ schedule:[
 ],
 image:"Pictures/Rakajeth.png",
 info: "Level 70 Field Boss",
- disabled: true,
+ 
 location: "Corrupted Basin > Benji's Cave"
 },
 {
@@ -216,7 +216,7 @@ location: "Corrupted Basin > Benji's Cave"
   name: "Icaruthia",
   type: "fixed",
   continent: "Kransia",
-  disabled: true,
+  
   schedule: [
     { day: 2, time: "21:00" },
     { day: 5, time: "21:00" }
@@ -228,7 +228,7 @@ location: "Corrupted Basin > Benji's Cave"
   name: "Motti",
   type: "fixed",
   continent: "Kransia",
-  disabled: true,
+  
   schedule: [
     { day: 3, time: "19:00" },  // Wednesday
     { day: 6, time: "19:00" }   // Saturday
@@ -240,7 +240,7 @@ location: "Corrupted Basin > Benji's Cave"
   name: "Nevaeh",
   type: "fixed",
   continent: "Kransia",
-  disabled: true,
+
   schedule: [
     { day: 0, time: "22:00" }   // Sunday
   ],
