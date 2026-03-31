@@ -84,8 +84,8 @@ Ego: [
     rarity: "Mythic",
     type: "Nose",
     img: "Boss loots/3.Ego/Disorder Nose.png",
-    desc: "",
-    stats: " Pango | Additional Option: 3 Options"
+    desc: "Tanginang ilong yan",
+    stats: " Pango
 },
     
 {
