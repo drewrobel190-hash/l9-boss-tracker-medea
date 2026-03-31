@@ -79,6 +79,15 @@ Viorent: [
 ],
 Ego: [
 
+    {
+    name: "Serad Battle Staff",
+    rarity: "Epic",
+    type: "Nose",
+    img: "Boss loots/3.Ego/Disorder Nose.png",
+    desc: "",
+    stats: " Pango | Additional Option: 3 Options"
+},
+    
 {
     name: "Serad Knuckles",
     rarity: "Epic",
@@ -97,14 +106,6 @@ Ego: [
     stats: "Melee Attack 550 | Additional Option: 3 Options"
 },
 
-{
-    name: "Serad Battle Staff",
-    rarity: "Epic",
-    type: "Battle Staff",
-    img: "Boss loots/3.Ego/Serad Battle Staff.png",
-    desc: "",
-    stats: "Magic Attack 580 | Additional Option: 3 Options"
-},
 
 {
     name: "Serad Staff",
