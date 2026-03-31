@@ -82,10 +82,10 @@ Ego: [
     {
     name: "Disorder's Nose",
     rarity: "Mythic",
-    type: "Pango Nose",
+    type: "Nose",
     img: "Boss loots/3.Ego/Disorder Nose.png",
     desc: "Tanginang ilong yan",
-    stats: " Pango"
+    stats: "Masarap Sapakin yung mukha"
 },
     
 {
