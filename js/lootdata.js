@@ -85,7 +85,7 @@ Ego: [
     type: "Tanginang ilong yan",
     img: "Boss loots/3.Ego/Disorder Nose.png",
     desc: "Tanginang ilong yan",
-    stats: " Pango
+    stats: " Pango"
 },
     
 {
